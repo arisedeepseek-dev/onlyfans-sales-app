@@ -9,6 +9,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    // Load initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
         fetchUser(session.user.id)
@@ -17,6 +18,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     })
 
+    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
         if (session?.user) {
@@ -49,20 +51,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function signIn(email: string, password: string) {
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
-    if (error) return { error: error.message }
-    return { error: null }
+    setLoading(true)
+    try {
+      const { error } = await supabase.auth.signInWithPassword({ email, password })
+      if (error) {
+        setLoading(false)
+        return { error: error.message }
+      }
+      // onAuthStateChange will handle updating user state
+      return { error: null }
+    } catch (err) {
+      setLoading(false)
+      return { error: 'An unexpected error occurred' }
+    }
   }
 
   async function signUp(email: string, password: string) {
-    const { error } = await supabase.auth.signUp({ email, password })
-    if (error) return { error: error.message }
-    return { error: null }
+    setLoading(true)
+    try {
+      const { error } = await supabase.auth.signUp({ email, password })
+      if (error) {
+        setLoading(false)
+        return { error: error.message }
+      }
+      return { error: null }
+    } catch (err) {
+      setLoading(false)
+      return { error: 'An unexpected error occurred' }
+    }
   }
 
   async function signOut() {
     await supabase.auth.signOut()
     setUser(null)
+    setLoading(false)
   }
 
   async function updateUser(data: Partial<User>) {
@@ -78,6 +100,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const isAdmin = user?.role === 'admin'
   const isBanned = user?.banned === true
 
+  // Block banned users from signing in
   useEffect(() => {
     if (isBanned) {
       signOut()

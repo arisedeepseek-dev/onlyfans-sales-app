@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react'
+import { useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { AuthLayout } from '../components/layout/AuthLayout'
@@ -15,59 +15,26 @@ interface SignUpForm {
 export function SignUp() {
   const navigate = useNavigate()
   const { signUp, user, isAdmin } = useAuth()
-  const [error, setError] = useState<string | null>(null)
-  const [submitting, setSubmitting] = useState(false)
-  const [authLoading, setAuthLoading] = useState(true)
-  const initialized = useRef(false)
 
-  // Handle navigation once when user is confirmed
   useEffect(() => {
-    if (authLoading || initialized.current) return
     if (user) {
-      initialized.current = true
       navigate(isAdmin ? '/admin' : '/dashboard', { replace: true })
-    } else {
-      setAuthLoading(false)
     }
-  }, [user, isAdmin, authLoading, navigate])
+  }, [user, isAdmin, navigate])
 
   const { register, handleSubmit, watch, formState: { errors } } = useForm<SignUpForm>()
   const password = watch('password')
 
   const onSubmit = async (data: SignUpForm) => {
-    if (submitting) return
-    setError(null)
-    setSubmitting(true)
-
-    try {
-      const result = await signUp(data.email, data.password)
-      if (result.error) {
-        setError(result.error)
-      }
-    } finally {
-      setSubmitting(false)
+    const result = await signUp(data.email, data.password)
+    if (result.error) {
+      alert(result.error)
     }
-  }
-
-  if (authLoading) {
-    return (
-      <AuthLayout title="Create Account">
-        <div className="flex items-center justify-center py-8">
-          <div className="w-8 h-8 border-2 border-accent-primary border-t-transparent rounded-full animate-spin" />
-        </div>
-      </AuthLayout>
-    )
   }
 
   return (
     <AuthLayout title="Create Account">
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 sm:space-y-5">
-        {error && (
-          <div className="p-3 rounded-xl bg-danger/10 border border-danger/20 text-danger text-sm">
-            {error}
-          </div>
-        )}
-
         <Input
           label="Email"
           type="email"
@@ -105,13 +72,8 @@ export function SignUp() {
           })}
         />
 
-        <Button
-          type="submit"
-          className="w-full min-h-[48px]"
-          disabled={submitting}
-          loading={submitting}
-        >
-          {submitting ? 'Creating account...' : 'Create Account'}
+        <Button type="submit" className="w-full min-h-[48px]">
+          Create Account
         </Button>
       </form>
 
