@@ -36,7 +36,7 @@ export function Login() {
 
   return (
     <AuthLayout title="Welcome Back">
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 sm:space-y-5">
         <Input
           label="Email"
           type="email"
@@ -64,17 +64,17 @@ export function Login() {
         />
 
         {error && (
-          <div className="p-3 rounded-xl bg-danger/10 border border-danger/20 text-danger text-sm">
+          <div className="p-3 sm:p-4 rounded-xl bg-danger/10 border border-danger/20 text-danger text-sm sm:text-base">
             {error}
           </div>
         )}
 
-        <Button type="submit" className="w-full" loading={loading}>
+        <Button type="submit" className="w-full min-h-[48px]" loading={loading}>
           Sign In
         </Button>
       </form>
 
-      <p className="text-center text-sm text-[#8B8B9E] mt-4">
+      <p className="text-center text-sm sm:text-base text-[#8B8B9E] mt-4 sm:mt-6">
         Don't have an account?{' '}
         <Link to="/signup" className="text-accent-primary hover:underline">Sign Up</Link>
       </p>

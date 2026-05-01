@@ -74,80 +74,82 @@ export function AdminUsers() {
 
   return (
     <AppLayout title="Manage Users">
-      <div className="space-y-4 animate-fade-in">
-        <div className="bg-dark-card border border-dark-border rounded-2xl p-4">
-          <p className="text-sm text-[#8B8B9E]">
+      <div className="space-y-4 sm:space-y-6 animate-fade-in">
+        <div className="bg-dark-card border border-dark-border rounded-2xl sm:rounded-3xl p-4 sm:p-5">
+          <p className="text-sm sm:text-base text-[#8B8B9E]">
             Total Users: <span className="text-white font-medium">{users.length}</span>
           </p>
         </div>
 
-        {/* Users List */}
-        <div className="space-y-3">
-          {users.map(user => {
-            const isCurrentUser = user.id === currentUser?.id
+        {/* Users List - responsive table-like layout */}
+        <div className="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
+          <div className="space-y-3 sm:space-y-4 min-w-[320px]">
+            {users.map(user => {
+              const isCurrentUser = user.id === currentUser?.id
 
-            return (
-              <div
-                key={user.id}
-                className={clsx(
-                  'bg-dark-card border border-dark-border rounded-2xl p-4 transition-all duration-200',
-                  isCurrentUser && 'border-accent-primary/30'
-                )}
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex items-start gap-3">
-                    <div className={clsx(
-                      'w-10 h-10 rounded-full flex items-center justify-center',
-                      user.role === 'admin'
-                        ? 'bg-accent-primary/20 text-accent-primary'
-                        : 'bg-dark-elevated text-[#8B8B9E]'
-                    )}>
-                      {user.role === 'admin' ? (
-                        <Shield className="w-5 h-5" />
-                      ) : (
-                        <UserCircle className="w-5 h-5" />
-                      )}
-                    </div>
-                    <div>
-                      <p className="text-white font-medium">{user.email}</p>
-                      <p className="text-xs text-[#8B8B9E]">
-                        Joined {new Date(user.created_at).toLocaleDateString()}
-                      </p>
-                      <span className={clsx(
-                        'inline-block mt-1 px-2 py-0.5 rounded-full text-xs font-medium',
+              return (
+                <div
+                  key={user.id}
+                  className={clsx(
+                    'bg-dark-card border border-dark-border rounded-2xl sm:rounded-3xl p-4 sm:p-5 md:p-6 transition-all duration-200',
+                    isCurrentUser && 'border-accent-primary/30'
+                  )}
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-start gap-3 sm:gap-4">
+                      <div className={clsx(
+                        'w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center flex-shrink-0',
                         user.role === 'admin'
                           ? 'bg-accent-primary/20 text-accent-primary'
                           : 'bg-dark-elevated text-[#8B8B9E]'
                       )}>
-                        {user.role}
-                      </span>
+                        {user.role === 'admin' ? (
+                          <Shield className="w-5 h-5 sm:w-6 sm:h-6" />
+                        ) : (
+                          <UserCircle className="w-5 h-5 sm:w-6 sm:h-6" />
+                        )}
+                      </div>
+                      <div>
+                        <p className="text-white font-medium text-sm sm:text-base">{user.email}</p>
+                        <p className="text-xs sm:text-sm text-[#8B8B9E]">
+                          Joined {new Date(user.created_at).toLocaleDateString()}
+                        </p>
+                        <span className={clsx(
+                          'inline-block mt-1 px-2 py-0.5 rounded-full text-xs font-medium',
+                          user.role === 'admin'
+                            ? 'bg-accent-primary/20 text-accent-primary'
+                            : 'bg-dark-elevated text-[#8B8B9E]'
+                        )}>
+                          {user.role}
+                        </span>
+                      </div>
                     </div>
+
+                    {!isCurrentUser && (
+                      <button
+                        onClick={() => openDeleteModal(user)}
+                        className="p-2 sm:p-3 rounded-xl text-[#8B8B9E] hover:text-danger hover:bg-danger/10 transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
+                      >
+                        <Trash2 className="w-4 h-4 sm:w-5 sm:h-5" />
+                      </button>
+                    )}
                   </div>
 
-                  {!isCurrentUser && (
-                    <button
-                      onClick={() => openDeleteModal(user)}
-                      className="p-2 rounded-xl text-[#8B8B9E] hover:text-danger hover:bg-danger/10 transition-colors"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                  {isCurrentUser && (
+                    <p className="mt-3 sm:mt-4 text-xs sm:text-sm text-accent-primary">You (current session)</p>
                   )}
                 </div>
-
-                {isCurrentUser && (
-                  <p className="mt-3 text-xs text-accent-primary">You (current session)</p>
-                )}
-              </div>
-            )
-          })}
-
-          {users.length === 0 && (
-            <div className="text-center py-12">
-              <UserCircle className="w-16 h-16 text-[#8B8B9E] mx-auto mb-4" />
-              <p className="text-[#8B8B9E]">No users found</p>
-            </div>
-          )}
+              )
+            })}
+          </div>
         </div>
+
+        {users.length === 0 && (
+          <div className="text-center py-12">
+            <UserCircle className="w-16 h-16 text-[#8B8B9E] mx-auto mb-4" />
+            <p className="text-[#8B8B9E]">No users found</p>
+          </div>
+        )}
       </div>
 
       {/* Delete Confirmation Modal */}

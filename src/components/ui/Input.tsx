@@ -30,11 +30,11 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             ref={ref}
             type={isPassword && showPassword ? 'text' : type}
             className={clsx(
-              'w-full h-12 px-4 rounded-xl bg-dark-card border border-dark-border text-white placeholder:text-[#8B8B9E] outline-none transition-all duration-200',
+              'w-full h-12 sm:h-13 px-4 sm:px-5 rounded-xl bg-dark-card border border-dark-border text-white placeholder:text-[#8B8B9E] outline-none transition-all duration-200 text-base sm:text-base',
               'focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20',
               'dark:bg-dark-card dark:border-dark-border dark:text-white dark:placeholder:text-[#8B8B9E]',
               'light:bg-light-card light:border-light-border light:text-light-text',
-              icon && 'pl-10',
+              icon && 'pl-10 sm:pl-11',
               isPassword && 'pr-10',
               error && 'border-danger focus:border-danger focus:ring-danger/20',
               className

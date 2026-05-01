@@ -31,19 +31,18 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps) {
       />
       <div
         className={clsx(
-          'relative w-full max-w-md bg-dark-card border border-dark-border rounded-t-3xl rounded-b-2xl p-6 animate-slide-up',
-          'light:bg-light-card light:border-light-border',
-          'sm:rounded-2xl'
+          'relative w-full max-w-md sm:max-w-lg lg:max-w-xl bg-dark-card border border-dark-border rounded-t-2xl sm:rounded-2xl lg:rounded-3xl p-5 sm:p-6 lg:p-8 animate-slide-up',
+          'light:bg-light-card light:border-light-border'
         )}
       >
         {title && (
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold text-white">{title}</h2>
+          <div className="flex items-center justify-between mb-4 sm:mb-6">
+            <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-white">{title}</h2>
             <button
               onClick={onClose}
-              className="p-2 rounded-xl hover:bg-dark-elevated text-[#8B8B9E] hover:text-white transition-colors"
+              className="p-2 sm:p-3 rounded-xl hover:bg-dark-elevated text-[#8B8B9E] hover:text-white transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
             >
-              <X className="w-5 h-5" />
+              <X className="w-5 h-5 sm:w-6 sm:h-6" />
             </button>
           </div>
         )}
@@ -78,12 +77,12 @@ export function ConfirmModal({
 }: ConfirmModalProps) {
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={title}>
-      <p className="text-[#8B8B9E] mb-6">{message}</p>
-      <div className="flex gap-3">
+      <p className="text-sm sm:text-base text-[#8B8B9E] mb-6">{message}</p>
+      <div className="flex gap-3 sm:gap-4">
         <button
           onClick={onClose}
           disabled={loading}
-          className="flex-1 h-12 rounded-xl border border-dark-border text-[#8B8B9E] hover:bg-dark-elevated transition-colors"
+          className="flex-1 h-12 sm:h-13 rounded-xl border border-dark-border text-[#8B8B9E] hover:bg-dark-elevated transition-colors min-h-[48px]"
         >
           {cancelText}
         </button>
@@ -91,7 +90,7 @@ export function ConfirmModal({
           onClick={onConfirm}
           disabled={loading}
           className={clsx(
-            'flex-1 h-12 rounded-xl font-medium transition-all',
+            'flex-1 h-12 sm:h-13 rounded-xl font-medium transition-all min-h-[48px]',
             variant === 'danger'
               ? 'bg-danger text-white hover:brightness-110'
               : 'bg-accent-primary text-white hover:brightness-110'

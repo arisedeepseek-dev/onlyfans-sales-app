@@ -12,8 +12,8 @@ import { Plus } from 'lucide-react'
 
 interface SaleFormData {
   gross_sales: number
+  comms_percent: number
   hourly_rate: number
-  comms_base: number
   hours_worked: number
 }
 
@@ -60,8 +60,8 @@ export function Sales() {
       const { error } = await supabase.from('sales').insert({
         user_id: user.id,
         gross_sales: data.gross_sales,
+        comms_percent: data.comms_percent ?? 10,
         hourly_rate: data.hourly_rate || 0,
-        comms_base: data.comms_base || 0,
         hours_worked: data.hours_worked || 0,
       })
 
@@ -84,8 +84,8 @@ export function Sales() {
         .from('sales')
         .update({
           gross_sales: data.gross_sales,
+          comms_percent: data.comms_percent ?? 10,
           hourly_rate: data.hourly_rate || 0,
-          comms_base: data.comms_base || 0,
           hours_worked: data.hours_worked || 0,
           updated_at: new Date().toISOString(),
         })
@@ -145,18 +145,19 @@ export function Sales() {
 
   return (
     <AppLayout title="Sales Tracker">
-      <div className="space-y-4 animate-fade-in">
+      <div className="space-y-4 sm:space-y-6 animate-fade-in">
         {/* Summary Header */}
-        <div className="bg-dark-card border border-dark-border rounded-2xl p-4">
-          <div className="flex items-center justify-between">
+        <div className="bg-dark-card border border-dark-border rounded-2xl sm:rounded-3xl p-4 sm:p-5 md:p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
             <div>
-              <p className="text-sm text-[#8B8B9E]">Total Entries</p>
-              <p className="text-2xl font-bold text-white">{sales.length}</p>
+              <p className="text-xs sm:text-sm md:text-base text-[#8B8B9E]">Total Entries</p>
+              <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-white">{sales.length}</p>
             </div>
             <Button
               onClick={() => setShowAddModal(true)}
               icon={<Plus className="w-4 h-4" />}
               size="sm"
+              className="sm:self-auto self-end"
             >
               Add Sale
             </Button>

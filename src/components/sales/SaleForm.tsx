@@ -5,8 +5,8 @@ import { Sale } from '../../types'
 
 interface SaleFormData {
   gross_sales: number
+  comms_percent: number
   hourly_rate: number
-  comms_base: number
   hours_worked: number
 }
 
@@ -21,8 +21,8 @@ export function SaleForm({ onSubmit, onCancel, loading, initialData }: SaleFormP
   const { register, handleSubmit, formState: { errors } } = useForm<SaleFormData>({
     defaultValues: {
       gross_sales: initialData?.gross_sales || 0,
+      comms_percent: initialData?.comms_percent ?? 10,
       hourly_rate: initialData?.hourly_rate || 0,
-      comms_base: initialData?.comms_base || 0,
       hours_worked: initialData?.hours_worked || 0,
     }
   })
@@ -33,9 +33,10 @@ export function SaleForm({ onSubmit, onCancel, loading, initialData }: SaleFormP
         label="Gross Sales ($)"
         type="number"
         step="0.01"
-        placeholder="0.00"
+        placeholder="500.00"
         icon={<span>$</span>}
         error={errors.gross_sales?.message}
+        className="sm:text-base"
         {...register('gross_sales', {
           required: 'Gross sales is required',
           min: { value: 0, message: 'Must be a positive number' },
@@ -44,37 +45,46 @@ export function SaleForm({ onSubmit, onCancel, loading, initialData }: SaleFormP
       />
 
       <Input
-        label="Hourly Rate ($)"
+        label="Commission %"
         type="number"
-        step="0.01"
-        placeholder="0.00"
-        icon={<span>$</span>}
-        {...register('hourly_rate', { valueAsNumber: true })}
+        step="0.1"
+        placeholder="10"
+        icon={<span>%</span>}
+        className="sm:text-base"
+        {...register('comms_percent', {
+          valueAsNumber: true,
+          min: { value: 0, message: 'Min 0%' },
+          max: { value: 100, message: 'Max 100%' }
+        })}
       />
 
-      <Input
-        label="Commission Base ($)"
-        type="number"
-        step="0.01"
-        placeholder="0.00"
-        icon={<span>$</span>}
-        {...register('comms_base', { valueAsNumber: true })}
-      />
+      <div className="grid grid-cols-2 gap-3">
+        <Input
+          label="Hourly Rate ($)"
+          type="number"
+          step="0.01"
+          placeholder="2.00"
+          icon={<span>$</span>}
+          className="sm:text-base"
+          {...register('hourly_rate', { valueAsNumber: true })}
+        />
 
-      <Input
-        label="Hours Worked"
-        type="number"
-        step="0.5"
-        placeholder="0"
-        {...register('hours_worked', { valueAsNumber: true })}
-      />
+        <Input
+          label="Hours Worked"
+          type="number"
+          step="0.5"
+          placeholder="8"
+          className="sm:text-base"
+          {...register('hours_worked', { valueAsNumber: true })}
+        />
+      </div>
 
-      <div className="flex gap-3 pt-2">
+      <div className="flex gap-3 sm:gap-4 pt-2 sm:pt-4">
         <Button
           type="button"
           variant="secondary"
           onClick={onCancel}
-          className="flex-1"
+          className="flex-1 min-h-[48px]"
           disabled={loading}
         >
           Cancel
@@ -82,7 +92,7 @@ export function SaleForm({ onSubmit, onCancel, loading, initialData }: SaleFormP
         <Button
           type="submit"
           variant="primary"
-          className="flex-1"
+          className="flex-1 min-h-[48px]"
           loading={loading}
         >
           {initialData ? 'Update' : 'Add Sale'}

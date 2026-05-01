@@ -14,7 +14,7 @@ export function StatCard({ label, value, icon, trend, className, accent = false 
   return (
     <div
       className={clsx(
-        'bg-dark-card border border-dark-border rounded-2xl p-4 transition-all duration-200',
+        'bg-dark-card border border-dark-border rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 transition-all duration-200',
         'light:bg-light-card light:border-light-border',
         accent && 'border-accent-primary/30 bg-accent-primary/5',
         className
@@ -22,11 +22,11 @@ export function StatCard({ label, value, icon, trend, className, accent = false 
     >
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-sm text-[#8B8B9E] mb-1">{label}</p>
-          <p className="text-2xl font-bold text-white tabular-nums">{value}</p>
+          <p className="text-xs sm:text-sm md:text-base text-[#8B8B9E] mb-1">{label}</p>
+          <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-white tabular-nums">{value}</p>
           {trend && (
             <p className={clsx(
-              'text-xs mt-1',
+              'text-xs sm:text-sm mt-1',
               trend.positive ? 'text-success' : 'text-danger'
             )}>
               {trend.positive ? '↑' : '↓'} {trend.value}
@@ -35,7 +35,7 @@ export function StatCard({ label, value, icon, trend, className, accent = false 
         </div>
         {icon && (
           <div className={clsx(
-            'p-2 rounded-xl',
+            'p-2 sm:p-3 rounded-xl',
             accent ? 'bg-accent-primary/20 text-accent-primary' : 'bg-dark-elevated text-[#8B8B9E]'
           )}>
             {icon}

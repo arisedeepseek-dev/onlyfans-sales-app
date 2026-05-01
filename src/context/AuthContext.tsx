@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
+import { createContext, useContext, useEffect, useState, useRef, ReactNode } from 'react'
 import { User, AuthContextType } from '../types'
 import { supabase } from '../lib/supabase'
 
@@ -7,6 +7,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
+  const authResolveRef = useRef<(() => void) | null>(null)
 
   useEffect(() => {
     // Check active session
@@ -48,36 +49,47 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(null)
     } finally {
       setLoading(false)
+      if (authResolveRef.current) {
+        authResolveRef.current()
+        authResolveRef.current = null
+      }
     }
   }
 
   async function signIn(email: string, password: string) {
+    setLoading(true)
     try {
       const { error } = await supabase.auth.signInWithPassword({ email, password })
-      if (error) return { error: error.message }
+      if (error) {
+        setLoading(false)
+        return { error: error.message }
+      }
+      // Wait for onAuthStateChange + fetchUserProfile to complete
+      await new Promise<void>((resolve) => {
+        authResolveRef.current = resolve
+      })
       return { error: null }
     } catch (err) {
+      setLoading(false)
       return { error: 'An unexpected error occurred' }
     }
   }
 
   async function signUp(email: string, password: string) {
+    setLoading(true)
     try {
-      const { data, error } = await supabase.auth.signUp({ email, password })
-      if (error) return { error: error.message }
-
-      // Create user profile
-      if (data.user) {
-        const { error: profileError } = await supabase.from('users').insert({
-          id: data.user.id,
-          email,
-          role: 'user',
-          theme: 'dark'
-        })
-        if (profileError) console.error('Profile creation error:', profileError)
+      const { error } = await supabase.auth.signUp({ email, password })
+      if (error) {
+        setLoading(false)
+        return { error: error.message }
       }
+      // Wait for onAuthStateChange + fetchUserProfile to complete
+      await new Promise<void>((resolve) => {
+        authResolveRef.current = resolve
+      })
       return { error: null }
     } catch (err) {
+      setLoading(false)
       return { error: 'An unexpected error occurred' }
     }
   }

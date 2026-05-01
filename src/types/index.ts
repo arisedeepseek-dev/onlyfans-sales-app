@@ -15,23 +15,26 @@ export interface User {
 export interface Sale {
   id: string
   user_id: string
-  gross_sales: number
-  hourly_rate: number
-  comms_base: number
-  hours_worked: number
-  net_sales: number
-  salary: number
+  gross_sales: number       // original sale amount (e.g., $500 PPV)
+  comms_percent: number    // creator's commission percentage (e.g., 10 = 10%)
+  hourly_rate: number      // pay per hour
+  hours_worked: number     // hours worked
   created_at: string
   updated_at: string
   deleted_at?: string | null
+
+  // Computed getters (calculated on the fly, not stored)
+  net_sales?: number       // gross * 0.80 (after OF 20% platform fee)
+  comms?: number           // net * comms_percent (creator's cut)
+  salary?: number          // comms + (hourly_rate * hours_worked)
 }
 
 export interface PeriodStats {
-  gross: number
-  net: number
-  comms: number
-  hourlyEarnings: number
-  salary: number
+  gross: number      // total gross sales
+  net: number        // gross * 0.80 (after OF 20% platform fee)
+  comms: number      // sum of (net * comms_percent) for all sales
+  hourlyEarnings: number  // sum of (hourly_rate * hours_worked)
+  salary: number     // comms + hourlyEarnings
 }
 
 export interface DashboardStats {

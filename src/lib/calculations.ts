@@ -1,25 +1,63 @@
 import { Sale, PeriodStats } from '../types'
 
-export function calculateSalary(gross: number, comms: number, hourlyRate: number, hours: number): number {
-  return gross - comms + (hourlyRate * hours)
+// OF platform fee is 20%, so net = gross * 0.80
+export function calculateNet(gross: number): number {
+  return gross * 0.80
 }
 
-export function calculatePeriodStats(sales: Sale[], startDate: Date, endDate: Date): PeriodStats {
+// Creator's commission from net (e.g., commsPercent=10 means 10% of net)
+export function calculateCommission(net: number, commsPercent: number): number {
+  return net * (commsPercent / 100)
+}
+
+// Total salary: creator's commission + hourly earnings
+export function calculateSalary(comms: number, hourlyRate: number, hours: number): number {
+  return comms + (hourlyRate * hours)
+}
+
+// Compute all derived values for a single sale
+export function computeSaleValues(sale: Sale): { net: number; comms: number; salary: number } {
+  const net = calculateNet(Number(sale.gross_sales))
+  const comms = calculateCommission(net, Number(sale.comms_percent))
+  const salary = calculateSalary(comms, Number(sale.hourly_rate), Number(sale.hours_worked))
+  return { net, comms, salary }
+}
+
+export function calculatePeriodStats(
+  sales: Sale[],
+  startDate: Date,
+  endDate: Date
+): PeriodStats {
   const periodSales = sales.filter(s => {
     const created = new Date(s.created_at)
     return created >= startDate && created <= endDate && !s.deleted_at
   })
 
-  const gross = periodSales.reduce((sum, s) => sum + Number(s.gross_sales), 0)
-  const comms = periodSales.reduce((sum, s) => sum + Number(s.comms_base), 0)
-  const hourlyEarnings = periodSales.reduce((sum, s) => sum + (Number(s.hourly_rate) * Number(s.hours_worked)), 0)
+  let gross = 0
+  let net = 0
+  let comms = 0
+  let hourlyEarnings = 0
+
+  periodSales.forEach(sale => {
+    const grossAmount = Number(sale.gross_sales)
+    const hourlyRate = Number(sale.hourly_rate)
+    const hoursWorked = Number(sale.hours_worked)
+
+    const netAmount = calculateNet(grossAmount)
+    const commsAmount = calculateCommission(netAmount, Number(sale.comms_percent))
+
+    gross += grossAmount
+    net += netAmount
+    comms += commsAmount
+    hourlyEarnings += hourlyRate * hoursWorked
+  })
 
   return {
     gross,
-    net: gross, // In this app, net = gross (user inputs what they received)
+    net,
     comms,
     hourlyEarnings,
-    salary: calculateSalary(gross, comms, 0, 0) // Base salary without hourly
+    salary: comms + hourlyEarnings,
   }
 }
 

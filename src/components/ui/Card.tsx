@@ -13,7 +13,7 @@ export function Card({ children, className, glow = false, onClick }: CardProps) 
     <div
       onClick={onClick}
       className={clsx(
-        'bg-dark-card border border-dark-border rounded-2xl p-4 transition-all duration-200',
+        'bg-dark-card border border-dark-border rounded-2xl sm:rounded-3xl p-4 sm:p-5 md:p-6 transition-all duration-200',
         'dark:bg-dark-card dark:border-dark-border',
         'light:bg-light-card light:border-light-border',
         glow && 'stat-glow cursor-pointer',

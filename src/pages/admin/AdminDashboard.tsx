@@ -70,54 +70,54 @@ export function AdminDashboard() {
 
   return (
     <AppLayout title="Admin Overview">
-      <div className="space-y-6 animate-fade-in">
+      <div className="space-y-6 sm:space-y-8 animate-fade-in">
         {/* Welcome Banner */}
-        <div className="bg-gradient-to-br from-accent-primary to-accent-secondary rounded-2xl p-6">
-          <h1 className="text-2xl font-bold text-white mb-2">Welcome, Admin</h1>
-          <p className="text-white/70">Here's your app overview</p>
+        <div className="bg-gradient-to-br from-accent-primary to-accent-secondary rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-10">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-2">Welcome, Admin</h1>
+          <p className="text-white/70 text-sm sm:text-base">Here's your app overview</p>
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 md:gap-6">
           <StatCard
             label="Total Users"
             value={stats.totalUsers.toString()}
-            icon={<User className="w-5 h-5" />}
+            icon={<User className="w-4 h-4 sm:w-5 sm:h-5" />}
             accent
           />
           <StatCard
             label="Active Today"
             value={stats.activeToday.toString()}
-            icon={<Activity className="w-5 h-5" />}
+            icon={<Activity className="w-4 h-4 sm:w-5 sm:h-5" />}
           />
           <StatCard
             label="Total Sales"
             value={stats.totalSales.toString()}
-            icon={<DollarSign className="w-5 h-5" />}
+            icon={<DollarSign className="w-4 h-4 sm:w-5 sm:h-5" />}
           />
           <StatCard
             label="Total Gross"
             value={formatCurrency(stats.totalGross)}
-            icon={<TrendingUp className="w-5 h-5" />}
+            icon={<TrendingUp className="w-4 h-4 sm:w-5 sm:h-5" />}
           />
         </div>
 
         {/* App Settings Quick Link */}
-        <div className="bg-dark-card border border-dark-border rounded-2xl p-4">
-          <h3 className="text-sm font-medium text-[#8B8B9E] mb-3">Quick Actions</h3>
-          <div className="space-y-2">
+        <div className="bg-dark-card border border-dark-border rounded-2xl sm:rounded-3xl p-4 sm:p-5 md:p-6">
+          <h3 className="text-sm sm:text-base font-medium text-[#8B8B9E] mb-3 sm:mb-4">Quick Actions</h3>
+          <div className="space-y-2 sm:space-y-3">
             <a
               href="/admin/users"
-              className="flex items-center justify-between p-3 bg-dark-elevated rounded-xl hover:bg-dark-border transition-colors"
+              className="flex items-center justify-between p-3 sm:p-4 md:p-5 bg-dark-elevated rounded-xl sm:rounded-2xl hover:bg-dark-border transition-colors"
             >
-              <span className="text-white">Manage Users</span>
+              <span className="text-white text-sm sm:text-base">Manage Users</span>
               <span className="text-[#8B8B9E]">→</span>
             </a>
             <a
               href="/admin/settings"
-              className="flex items-center justify-between p-3 bg-dark-elevated rounded-xl hover:bg-dark-border transition-colors"
+              className="flex items-center justify-between p-3 sm:p-4 md:p-5 bg-dark-elevated rounded-xl sm:rounded-2xl hover:bg-dark-border transition-colors"
             >
-              <span className="text-white">App Settings</span>
+              <span className="text-white text-sm sm:text-base">App Settings</span>
               <span className="text-[#8B8B9E]">→</span>
             </a>
           </div>

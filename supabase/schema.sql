@@ -21,11 +21,9 @@ create table if not exists public.sales (
   id uuid primary key default uuid_generate_v4(),
   user_id uuid not null references public.users(id) on delete cascade,
   gross_sales numeric not null default 0,
+  comms_percent numeric default 10,  -- creator's commission percentage (e.g., 10 = 10%)
   hourly_rate numeric default 0,
-  comms_base numeric default 0,
   hours_worked numeric default 0,
-  net_sales numeric generated always as (gross_sales) stored,
-  salary numeric generated always as (gross_sales - comms_base + (hourly_rate * hours_worked)) stored,
   created_at timestamptz default now(),
   updated_at timestamptz default now(),
   deleted_at timestamptz
@@ -103,17 +101,6 @@ drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
   after insert on auth.users
   for each row execute procedure public.handle_new_user();
-
--- Function to soft delete sales
-create or replace function public.soft_delete_sale()
-returns trigger as $$
-begin
-  update public.sales
-  set deleted_at = now()
-  where id = old.id;
-  return old;
-end;
-$$ language plpgsql;
 
 -- indexes for performance
 create index if not exists idx_sales_user_id on public.sales(user_id);

@@ -73,27 +73,27 @@ export function AdminSettings() {
 
   return (
     <AppLayout title="App Settings" showNav={true}>
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 animate-fade-in">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 sm:space-y-8 animate-fade-in">
         {/* Success Message */}
         {saved && (
-          <div className="p-3 rounded-xl bg-success/10 border border-success/30 text-success text-sm flex items-center gap-2">
-            <CheckCircle className="w-4 h-4" />
+          <div className="p-3 sm:p-4 rounded-xl bg-success/10 border border-success/30 text-success text-sm sm:text-base flex items-center gap-2">
+            <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
             Settings saved successfully!
           </div>
         )}
 
         {/* Error Message */}
         {error && (
-          <div className="p-3 rounded-xl bg-danger/10 border border-danger/30 text-danger text-sm">
+          <div className="p-3 sm:p-4 rounded-xl bg-danger/10 border border-danger/30 text-danger text-sm sm:text-base">
             {error}
           </div>
         )}
 
         {/* App Info */}
-        <Card className="space-y-4">
+        <Card className="space-y-4 sm:space-y-5">
           <div className="flex items-center gap-2 text-white mb-2">
-            <Type className="w-5 h-5 text-accent-primary" />
-            <h2 className="font-semibold">App Information</h2>
+            <Type className="w-5 h-5 sm:w-6 sm:h-6 text-accent-primary" />
+            <h2 className="font-semibold text-sm sm:text-base md:text-lg">App Information</h2>
           </div>
 
           <Input
@@ -112,10 +112,10 @@ export function AdminSettings() {
         </Card>
 
         {/* Admin Credentials */}
-        <Card className="space-y-4">
+        <Card className="space-y-4 sm:space-y-5">
           <div className="flex items-center gap-2 text-white mb-2">
-            <Shield className="w-5 h-5 text-accent-primary" />
-            <h2 className="font-semibold">Admin Credentials</h2>
+            <Shield className="w-5 h-5 sm:w-6 sm:h-6 text-accent-primary" />
+            <h2 className="font-semibold text-sm sm:text-base md:text-lg">Admin Credentials</h2>
           </div>
 
           <Input
@@ -156,7 +156,7 @@ export function AdminSettings() {
         {/* Save Button */}
         <Button
           type="submit"
-          className="w-full"
+          className="w-full min-h-[48px]"
           loading={loading}
           icon={<Save className="w-4 h-4" />}
         >
@@ -164,9 +164,9 @@ export function AdminSettings() {
         </Button>
 
         {/* Version Info */}
-        <div className="text-center pt-4">
-          <p className="text-xs text-[#6B6B80]">OnlyFans Sales Tracker v1.0.0</p>
-          <p className="text-xs text-[#6B6B80]">Built with React + Supabase</p>
+        <div className="text-center pt-4 sm:pt-6">
+          <p className="text-xs sm:text-sm text-[#6B6B80]">OnlyFans Sales Tracker v1.0.0</p>
+          <p className="text-xs sm:text-sm text-[#6B6B80]">Built with React + Supabase</p>
         </div>
       </form>
     </AppLayout>

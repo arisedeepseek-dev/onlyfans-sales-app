@@ -1,5 +1,5 @@
 import { Sale } from '../../types'
-import { formatCurrency } from '../../lib/calculations'
+import { formatCurrency, computeSaleValues } from '../../lib/calculations'
 import { Trash2, Edit2, Clock } from 'lucide-react'
 import clsx from 'clsx'
 
@@ -25,23 +25,23 @@ export function SaleList({ sales, onEdit, onDelete }: SaleListProps) {
   return (
     <div className="space-y-3">
       {sales.map((sale) => {
-        const salary = Number(sale.gross_sales) - Number(sale.comms_base) + (Number(sale.hourly_rate) * Number(sale.hours_worked))
+        const { net, comms, salary } = computeSaleValues(sale)
 
         return (
           <div
             key={sale.id}
             className={clsx(
-              'bg-dark-card border border-dark-border rounded-2xl p-4 transition-all duration-200',
+              'bg-dark-card border border-dark-border rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 transition-all duration-200',
               'light:bg-light-card light:border-light-border'
             )}
           >
             {/* Header */}
-            <div className="flex items-start justify-between mb-3">
+            <div className="flex items-start justify-between mb-3 sm:mb-4">
               <div>
-                <p className="text-2xl font-bold text-white tabular-nums">
+                <p className="text-xl sm:text-2xl md:text-3xl font-bold text-white tabular-nums">
                   {formatCurrency(Number(sale.gross_sales))}
                 </p>
-                <p className="text-sm text-[#8B8B9E]">
+                <p className="text-xs sm:text-sm text-[#8B8B9E]">
                   {new Date(sale.created_at).toLocaleDateString('en-US', {
                     month: 'short',
                     day: 'numeric',
@@ -50,16 +50,16 @@ export function SaleList({ sales, onEdit, onDelete }: SaleListProps) {
                   })}
                 </p>
               </div>
-              <div className="flex gap-1">
+              <div className="flex gap-1 sm:gap-2">
                 <button
                   onClick={() => onEdit(sale)}
-                  className="p-2 rounded-xl text-[#8B8B9E] hover:text-accent-primary hover:bg-accent-primary/10 transition-colors"
+                  className="w-11 h-11 sm:w-10 sm:h-10 flex items-center justify-center rounded-xl text-[#8B8B9E] hover:text-accent-primary hover:bg-accent-primary/10 transition-colors min-w-[44px] min-h-[44px]"
                 >
                   <Edit2 className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => onDelete(sale)}
-                  className="p-2 rounded-xl text-[#8B8B9E] hover:text-danger hover:bg-danger/10 transition-colors"
+                  className="w-11 h-11 sm:w-10 sm:h-10 flex items-center justify-center rounded-xl text-[#8B8B9E] hover:text-danger hover:bg-danger/10 transition-colors min-w-[44px] min-h-[44px]"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
@@ -67,32 +67,44 @@ export function SaleList({ sales, onEdit, onDelete }: SaleListProps) {
             </div>
 
             {/* Stats Grid */}
-            <div className="grid grid-cols-3 gap-3">
-              <div className="bg-dark-elevated rounded-xl p-3">
-                <p className="text-xs text-[#8B8B9E] mb-1">Net</p>
-                <p className="text-sm font-semibold text-white tabular-nums">
-                  {formatCurrency(Number(sale.gross_sales))}
+            <div className="grid grid-cols-3 gap-2 sm:gap-3">
+              <div className="bg-dark-elevated rounded-xl p-2 sm:p-3">
+                <p className="text-xs text-[#8B8B9E] mb-1">Net (80%)</p>
+                <p className="text-sm sm:text-base font-semibold text-white tabular-nums">
+                  {formatCurrency(net)}
                 </p>
               </div>
-              <div className="bg-dark-elevated rounded-xl p-3">
-                <p className="text-xs text-[#8B8B9E] mb-1">Comms</p>
-                <p className="text-sm font-semibold text-danger tabular-nums">
-                  -{formatCurrency(Number(sale.comms_base))}
+              <div className="bg-dark-elevated rounded-xl p-2 sm:p-3">
+                <p className="text-xs text-[#8B8B9E] mb-1">Comms ({sale.comms_percent}%)</p>
+                <p className="text-sm sm:text-base font-semibold text-danger tabular-nums">
+                  -{formatCurrency(comms)}
                 </p>
               </div>
-              <div className="bg-dark-elevated rounded-xl p-3">
+              <div className="bg-dark-elevated rounded-xl p-2 sm:p-3">
                 <p className="text-xs text-[#8B8B9E] mb-1">Hourly</p>
-                <p className="text-sm font-semibold text-success tabular-nums">
+                <p className="text-sm sm:text-base font-semibold text-success tabular-nums">
                   +{formatCurrency(Number(sale.hourly_rate) * Number(sale.hours_worked))}
                 </p>
               </div>
             </div>
 
-            {/* Salary */}
-            <div className="mt-3 pt-3 border-t border-dark-border">
+            {/* Salary Breakdown */}
+            <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-dark-border space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-[#8B8B9E]">Estimated Salary</span>
-                <span className="text-lg font-bold text-success tabular-nums">
+                <span className="text-sm sm:text-base text-[#8B8B9E]">Comms Only</span>
+                <span className="text-sm sm:text-base font-semibold text-white tabular-nums">
+                  {formatCurrency(comms)}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm sm:text-base text-[#8B8B9E]">Hourly Earnings</span>
+                <span className="text-sm sm:text-base font-semibold text-success tabular-nums">
+                  +{formatCurrency(Number(sale.hourly_rate) * Number(sale.hours_worked))}
+                </span>
+              </div>
+              <div className="flex items-center justify-between pt-2 border-t border-dark-border">
+                <span className="text-sm sm:text-base font-medium text-white">Total Salary</span>
+                <span className="text-lg sm:text-xl font-bold text-success tabular-nums">
                   {formatCurrency(salary)}
                 </span>
               </div>
