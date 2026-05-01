@@ -12,7 +12,6 @@ export function AdminDashboard() {
     totalSales: 0,
     totalGross: 0,
     adminCount: 0,
-    userCount: 0,
   })
   const [loading, setLoading] = useState(true)
 
@@ -53,7 +52,6 @@ export function AdminDashboard() {
         totalSales,
         totalGross,
         adminCount: adminCount || 0,
-        userCount: (userCount || 0) - (adminCount || 0),
       })
     } catch (error) {
       console.error('Error fetching admin stats:', error)
@@ -91,15 +89,15 @@ export function AdminDashboard() {
         {/* User Stats - Admin focused */}
         <section>
           <h2 className="text-[10px] sm:text-xs font-medium text-white/30 uppercase tracking-widest mb-2 sm:mb-3">Platform Users</h2>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
+          <div className="grid grid-cols-3 gap-2 sm:gap-3">
             <div className="bg-dark-card border border-dark-border rounded-2xl sm:rounded-3xl p-4 sm:p-5 md:p-6">
               <div className="flex items-center gap-2 mb-3">
                 <div className="p-2 sm:p-3 bg-accent-primary/10 rounded-xl">
-                  <Users className="w-4 h-4 sm:w-5 sm:h-5 text-accent-primary" />
+                  <Shield className="w-4 h-4 sm:w-5 sm:h-5 text-accent-primary" />
                 </div>
               </div>
-              <p className="text-[10px] sm:text-xs text-white/40 mb-1">Total Users</p>
-              <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-white">{stats.totalUsers}</p>
+              <p className="text-[10px] sm:text-xs text-white/40 mb-1">Admins</p>
+              <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-accent-primary">{stats.adminCount}</p>
             </div>
 
             <div className="bg-dark-card border border-dark-border rounded-2xl sm:rounded-3xl p-4 sm:p-5 md:p-6">
@@ -114,22 +112,12 @@ export function AdminDashboard() {
 
             <div className="bg-dark-card border border-dark-border rounded-2xl sm:rounded-3xl p-4 sm:p-5 md:p-6">
               <div className="flex items-center gap-2 mb-3">
-                <div className="p-2 sm:p-3 bg-accent-primary/10 rounded-xl">
-                  <Shield className="w-4 h-4 sm:w-5 sm:h-5 text-accent-primary" />
-                </div>
-              </div>
-              <p className="text-[10px] sm:text-xs text-white/40 mb-1">Admins</p>
-              <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-accent-primary">{stats.adminCount}</p>
-            </div>
-
-            <div className="bg-dark-card border border-dark-border rounded-2xl sm:rounded-3xl p-4 sm:p-5 md:p-6">
-              <div className="flex items-center gap-2 mb-3">
                 <div className="p-2 sm:p-3 bg-dark-elevated rounded-xl">
                   <Users className="w-4 h-4 sm:w-5 sm:h-5 text-[#8B8B9E]" />
                 </div>
               </div>
-              <p className="text-[10px] sm:text-xs text-white/40 mb-1">Regular Users</p>
-              <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-white">{stats.userCount}</p>
+              <p className="text-[10px] sm:text-xs text-white/40 mb-1">Users</p>
+              <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-white">{stats.totalUsers - stats.adminCount}</p>
             </div>
           </div>
         </section>
