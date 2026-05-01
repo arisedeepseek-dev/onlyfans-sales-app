@@ -1,5 +1,5 @@
 import { Sale } from '../../types'
-import { formatCurrency, formatNumber } from '../../lib/calculations'
+import { formatCurrency } from '../../lib/calculations'
 import { Trash2, Edit2, Clock } from 'lucide-react'
 import clsx from 'clsx'
 

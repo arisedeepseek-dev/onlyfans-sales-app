@@ -7,7 +7,7 @@ import { useAuth } from '../../context/AuthContext'
 import { formatCurrency } from '../../lib/calculations'
 
 export function AdminDashboard() {
-  const { user } = useAuth()
+  const { user: _user } = useAuth() // Used by admin-only route protection
   const [stats, setStats] = useState({
     totalUsers: 0,
     totalSales: 0,

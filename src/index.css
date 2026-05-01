@@ -17,9 +17,9 @@ body {
 }
 
 /* Light mode overrides */
-.light body,
-.light {
-  @apply bg-light-bg text-light-text;
+.light body, .light {
+  background-color: #F5F6FA;
+  color: #0A0A0F;
 }
 
 /* Tabular numbers for stats */

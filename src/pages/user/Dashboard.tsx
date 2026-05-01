@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { AppLayout } from '../../components/layout/AppLayout'
 import { StatCard } from '../../components/ui/StatCard'
-import { Sale, DashboardStats, PeriodStats } from '../../types'
+import { Sale, DashboardStats } from '../../types'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
 import { formatCurrency, calculatePeriodStats, getDateRange } from '../../lib/calculations'
