@@ -6,6 +6,7 @@ export function useTheme() {
   const { user, updateUser } = useAuth()
   const [theme, setTheme] = useState<Theme>('dark')
 
+  // Sync theme state with user preference / localStorage on mount
   useEffect(() => {
     if (user?.theme) {
       setTheme(user.theme)
@@ -15,10 +16,21 @@ export function useTheme() {
     }
   }, [user?.theme])
 
+  // Apply theme class to <html> and update body classes
   useEffect(() => {
+    const root = document.documentElement
+    root.classList.remove('dark', 'light')
+    root.classList.add(theme)
     localStorage.setItem('theme', theme)
-    document.documentElement.classList.remove('dark', 'light')
-    document.documentElement.classList.add(theme)
+
+    // Also update body classes dynamically so Tailwind utilities respond correctly
+    if (theme === 'dark') {
+      document.body.classList.add('dark')
+      document.body.classList.remove('light')
+    } else {
+      document.body.classList.add('light')
+      document.body.classList.remove('dark')
+    }
   }, [theme])
 
   const toggleTheme = () => {

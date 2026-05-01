@@ -16,12 +16,22 @@ body {
   -moz-osx-font-smoothing: grayscale;
   min-height: 100vh;
   overscroll-behavior: none;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-/* Light mode overrides */
-.light body, .light {
+/* Light mode body styles */
+body.light, .light body {
   background-color: #F5F6FA;
   color: #0A0A0F;
+}
+
+/* Ensure dark/light backgrounds also apply to html element */
+html.dark {
+  background-color: #0A0A0F;
+}
+
+html.light {
+  background-color: #F5F6FA;
 }
 
 /* Tabular numbers for stats */
