@@ -1,6 +1,6 @@
 import { useLocation, useNavigate } from 'react-router-dom'
 import clsx from 'clsx'
-import { LayoutDashboard, DollarSign, User, Settings, Users, LogOut } from 'lucide-react'
+import { LayoutDashboard, DollarSign, User, Settings, LogOut } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 
 type NavItem = {
@@ -18,7 +18,6 @@ const userNavItems: NavItem[] = [
 
 const adminNavItems: NavItem[] = [
   { label: 'Overview', icon: <LayoutDashboard className="w-5 h-5 sm:w-6 sm:h-6" />, path: '/admin' },
-  { label: 'Users', icon: <Users className="w-5 h-5 sm:w-6 sm:h-6" />, path: '/admin/users' },
   { label: 'Settings', icon: <Settings className="w-5 h-5 sm:w-6 sm:h-6" />, path: '/admin/settings' },
 ]
 

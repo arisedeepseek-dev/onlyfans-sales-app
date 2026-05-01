@@ -6,7 +6,6 @@ import { Dashboard } from './pages/user/Dashboard'
 import { Sales } from './pages/user/Sales'
 import { Profile } from './pages/user/Profile'
 import { AdminDashboard } from './pages/admin/AdminDashboard'
-import { AdminUsers } from './pages/admin/AdminUsers'
 import { AdminSettings } from './pages/admin/AdminSettings'
 
 function ProtectedRoute({ children, adminOnly = false, userOnly = false }: { children: React.ReactNode; adminOnly?: boolean; userOnly?: boolean }) {
@@ -70,10 +69,6 @@ function AppRoutes() {
       <Route
         path="/admin"
         element={<ProtectedRoute adminOnly><AdminDashboard /></ProtectedRoute>}
-      />
-      <Route
-        path="/admin/users"
-        element={<ProtectedRoute adminOnly><AdminUsers /></ProtectedRoute>}
       />
       <Route
         path="/admin/settings"
