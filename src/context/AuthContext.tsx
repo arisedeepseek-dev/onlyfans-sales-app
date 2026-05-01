@@ -10,78 +10,48 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const initializedRef = useRef(false)
 
   useEffect(() => {
-    // Prevent double initialization
+    // Guard against double-init (React StrictMode can trigger this)
     if (initializedRef.current) return
     initializedRef.current = true
 
-    let cancelled = false
+    async function loadUser() {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session?.user) {
+        const { data, error } = await supabase
+          .from('users')
+          .select('*')
+          .eq('id', session.user.id)
+          .single()
 
-    async function init() {
-      try {
-        // 1. Check existing session
-        const { data: { session } } = await supabase.auth.getSession()
+        if (!error && data) {
+          setUser(data)
+        }
+      }
+      setLoading(false)
+    }
 
-        if (!cancelled && session?.user) {
-          // 2. Fetch user profile if session exists
+    loadUser()
+
+    // 2. Listen for auth changes going forward
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (_event, session) => {
+        if (session?.user) {
           const { data, error } = await supabase
             .from('users')
             .select('*')
             .eq('id', session.user.id)
             .single()
 
-          if (!cancelled) {
-            if (error) {
-              console.error('Profile fetch error:', error)
-              setUser(null)
-            } else {
-              setUser(data)
-            }
-          }
-        } else if (!cancelled) {
-          setUser(null)
-        }
-      } catch (err) {
-        console.error('Auth init error:', err)
-        if (!cancelled) setUser(null)
-      } finally {
-        if (!cancelled) setLoading(false)
-      }
-    }
-
-    init()
-
-    // Listen for future auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
-        // Skip the first redundant SIGHUP event that Supabase fires
-        if (cancelled || !initializedRef.current) return
-
-        if (session?.user) {
-          try {
-            const { data, error } = await supabase
-              .from('users')
-              .select('*')
-              .eq('id', session.user.id)
-              .single()
-
-            if (!cancelled) {
-              if (error) {
-                setUser(null)
-              } else {
-                setUser(data)
-              }
-            }
-          } catch {
-            if (!cancelled) setUser(null)
+          if (!error && data) {
+            setUser(data)
           }
         } else {
-          if (!cancelled) setUser(null)
+          setUser(null)
         }
       }
     )
 
     return () => {
-      cancelled = true
       subscription.unsubscribe()
     }
   }, [])
@@ -94,7 +64,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setLoading(false)
         return { error: error.message }
       }
-      // Wait for loading to be resolved by onAuthStateChange
+      // onAuthStateChange will handle setting user — clear loading so redirect happens
+      setLoading(false)
       return { error: null }
     } catch (err) {
       setLoading(false)
@@ -110,6 +81,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setLoading(false)
         return { error: error.message }
       }
+      // onAuthStateChange will handle setting user — clear loading so redirect happens
+      setLoading(false)
       return { error: null }
     } catch (err) {
       setLoading(false)
