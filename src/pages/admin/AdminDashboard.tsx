@@ -88,41 +88,30 @@ export function AdminDashboard() {
         </div>
 
         {/* Platform Stats */}
-        {[
-          {
-            title: 'Platform',
-            cols: 4,
-            items: [
+        <section>
+          <h2 className="text-[10px] sm:text-xs font-medium text-white/30 uppercase tracking-widest mb-2 sm:mb-3">Platform Stats</h2>
+          <div className="grid grid-cols-2 gap-2 sm:gap-3">
+            {[
               { label: 'Total Users', value: stats.totalUsers, icon: <Users className="w-4 h-4" /> },
               { label: 'Active Today', value: stats.activeToday, icon: <UserCheck className="w-4 h-4" />, accent: true },
               { label: 'Total Sales', value: stats.totalSales, icon: <Database className="w-4 h-4" /> },
-              { label: 'Gross', value: formatCurrency(stats.totalGross), icon: <TrendingUp className="w-4 h-4" />, wide: true },
-            ]
-          },
-        ].map(({ title, cols, items }) => (
-          <section key={title}>
-            <h2 className="text-[10px] sm:text-xs font-medium text-white/30 uppercase tracking-widest mb-2 sm:mb-3">{title} Stats</h2>
-            <div
-              className="grid gap-2 sm:gap-3"
-              style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}
-            >
-              {items.map(({ label, value, icon, accent }) => (
-                <div
-                  key={label}
-                  className="bg-dark-card border border-dark-border rounded-xl sm:rounded-2xl p-3 sm:p-4 md:p-5 flex items-center gap-3"
-                >
-                  <div className={`p-2 sm:p-2.5 rounded-lg shrink-0 ${accent ? 'bg-success/10 text-success' : 'bg-accent-primary/10 text-accent-primary'}`}>
-                    {icon}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-[10px] sm:text-xs text-white/40 mb-0.5 truncate">{label}</p>
-                    <p className="text-base sm:text-lg md:text-xl font-bold text-white tabular-nums truncate">{value}</p>
-                  </div>
+              { label: 'Gross Revenue', value: formatCurrency(stats.totalGross), icon: <TrendingUp className="w-4 h-4" /> },
+            ].map(({ label, value, icon, accent }) => (
+              <div
+                key={label}
+                className="bg-dark-card border border-dark-border rounded-xl sm:rounded-2xl p-3 sm:p-4 md:p-5 flex items-center gap-3"
+              >
+                <div className={`p-2 sm:p-2.5 rounded-lg shrink-0 ${accent ? 'bg-success/10 text-success' : 'bg-accent-primary/10 text-accent-primary'}`}>
+                  {icon}
                 </div>
-              ))}
-            </div>
-          </section>
-        ))}
+                <div className="min-w-0 flex-1">
+                  <p className="text-[10px] sm:text-xs text-white/40 mb-0.5 truncate">{label}</p>
+                  <p className="text-base sm:text-lg md:text-xl font-bold text-white tabular-nums leading-none">{value}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
 
         {/* Quick Actions */}
         <section>
