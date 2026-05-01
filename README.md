@@ -12,7 +12,6 @@ A sleek, professional mobile-first admin panel for OnlyFans creators to track sa
 ### Admin Panel
 - **App Management**: Customize app name, title, and branding
 - **Admin Credentials**: Change admin username and password
-- **User Management**: View all users, delete accounts
 - **Dashboard Overview**: Total users, active today, total sales, gross revenue
 
 ### User Features
@@ -95,11 +94,16 @@ Open [http://localhost:3000](http://localhost:3000)
 
 ### 6. Default Admin Login
 
-First time setup:
-- **Username**: `admin`
-- **Password**: `admin`
+First time setup — create your admin account in **Supabase SQL Editor**:
 
-⚠️ **Important**: Change these credentials immediately after first login in **Admin Settings**.
+```sql
+INSERT INTO public.users (id, email, role)
+VALUES ('YOUR_AUTH_UID', 'admin@yourdomain.com', 'admin');
+```
+
+Then set your password in **Supabase Dashboard → Authentication → Users → Update**.
+
+⚠️ **Important**: Change these credentials after first login in **Admin Settings**.
 
 ## 📁 Project Structure
 
@@ -109,10 +113,10 @@ onlyfans-sales-app/
 │   ├── components/
 │   │   ├── ui/          # Button, Input, Card, Modal, StatCard, ThemeToggle
 │   │   ├── layout/      # AppLayout, AuthLayout, BottomNav
-│   │   └── sales/       # SaleForm, SaleList
+│   │   └── sales/        # SaleForm, SaleList
 │   ├── pages/
 │   │   ├── user/        # Dashboard, Sales, Profile
-│   │   └── admin/       # AdminDashboard, AdminUsers, AdminSettings
+│   │   └── admin/       # AdminDashboard, AdminSettings
 │   ├── context/         # AuthContext
 │   ├── hooks/           # useTheme
 │   ├── lib/             # supabase, calculations
@@ -147,7 +151,6 @@ onlyfans-sales-app/
 
 ### Admin Panel
 - Overview with key metrics
-- User list with role badges
 - Settings for app branding and credentials
 
 ## 🎨 Color Palette

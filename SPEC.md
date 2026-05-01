@@ -64,12 +64,11 @@ Dark-first premium fintech aesthetic. Inspired by Linear, Stripe Dashboard, and 
 
 **Admin Panel**
 - `/admin` — Overview: user count, total sales, app health
-- `/admin/users` — List all users, delete accounts
 - `/admin/settings` — App name, title, admin credentials
 
 ### Navigation
 - **User:** Bottom tab bar — Dashboard, Sales, Profile
-- **Admin:** Bottom tab bar — Overview, Users, Settings
+- **Admin:** Bottom tab bar — Overview, Settings
 
 ### Responsive Strategy
 - Mobile-first (375px–428px primary target)
@@ -83,12 +82,11 @@ Dark-first premium fintech aesthetic. Inspired by Linear, Stripe Dashboard, and 
 ### Authentication
 
 **Default Admin Credentials (fresh install):**
-- Username: `admin`
-- Password: `admin`
-- Admin can change credentials in Settings after first login
+- Email: `admin@yourdomain.com`
+- Password: Set via Supabase Dashboard after creating the admin user
 
 **User Sign Up:**
-- Fields: email, password (min 8 chars)
+- Fields: email, password (min 6 chars)
 - Auto-assigned role: `user`
 - Immediate redirect to dashboard after signup
 
@@ -109,20 +107,18 @@ Dark-first premium fintech aesthetic. Inspired by Linear, Stripe Dashboard, and 
 - Custom Commission Base (optional, number)
 - Auto-timestamps on creation
 
-**Auto-Calculations (server-side or client-side):**
+**Auto-Calculations:**
 
 ```
-net_sales = gross_sales        (what the platform takes + fees)
-salary_without_hourly = gross_sales - net_sales - comms_base
-salary_with_hourly = gross_sales - net_sales - comms_base + (hourly_rate × hours_worked)
+net_sales = gross_sales * 0.80 (after OF 20% platform fee)
+comms = net_sales * (comms_percent / 100)
+salary = comms + (hourly_rate × hours_worked)
 ```
-
-*Note: "net_sales" in this app = gross after platform fees (typically 20-40% OnlyFans cut). User inputs their net (what they actually receive from platform before other deductions).*
 
 **Calculations Display:**
 - Today / Weekly / Biweekly / Monthly / Yearly
-- For each period: gross total, net total, commission base total, salary estimate
-- Hours worked: user inputs hours, or defaults to estimated (period hours)
+- For each period: gross total, net total, comms total, salary estimate
+- Hours worked: user inputs hours
 
 **Edit Entry:**
 - Tap any entry → slide-in edit panel
@@ -139,15 +135,8 @@ salary_with_hourly = gross_sales - net_sales - comms_base + (hourly_rate × hour
 **App Settings:**
 - App Name (text input, max 50 chars)
 - App Title / Tagline (text input, max 100 chars)
-- Admin Username (change)
-- Admin Password (change, requires current password)
+- Admin Email/Password (change via Supabase or profile)
 - Save button with loading state
-
-**User Management:**
-- Paginated list of users (10 per page)
-- Each row: email, role, created date, action buttons
-- Delete user → confirmation modal
-- Cannot delete self (admin)
 
 ### Theme Toggle
 - Toggle in Profile / Settings header
@@ -221,13 +210,13 @@ salary_with_hourly = gross_sales - net_sales - comms_base + (hourly_rate × hour
 ```sql
 id          uuid primary key default gen_random_uuid()
 email       text unique not null
-password    text not null (hashed with bcrypt)
 role        text default 'user' check (role in ('user', 'admin'))
-app_name    text
-app_title   text
+banned      boolean default false
+app_name    text default 'OnlyFans Sales'
+app_title   text default 'Your sales, your numbers, your empire'
+theme       text default 'dark'
 created_at  timestamptz default now()
 updated_at  timestamptz default now()
-theme       text default 'dark'
 ```
 
 **Table: `sales`**
@@ -235,11 +224,9 @@ theme       text default 'dark'
 id              uuid primary key default gen_random_uuid()
 user_id         uuid references users(id) on delete cascade
 gross_sales     numeric not null default 0
+comms_percent   numeric default 10
 hourly_rate     numeric default 0
-comms_base      numeric default 0
 hours_worked    numeric default 0
-net_sales       numeric generated always as (gross_sales) stored
-salary          numeric generated always as (gross_sales - comms_base + (hourly_rate * hours_worked)) stored
 created_at      timestamptz default now()
 updated_at      timestamptz default now()
 deleted_at      timestamptz
@@ -247,7 +234,7 @@ deleted_at      timestamptz
 
 **RLS Policies:**
 - Users can only read/write their own sales
-- Admin can read all sales and manage users
+- Admin role required for admin routes
 - Soft delete filter: `deleted_at IS NULL`
 
 ### API Design (Supabase calls)
@@ -257,11 +244,10 @@ All data access via Supabase JS client with RLS. No custom REST API needed.
 Key operations:
 - `supabase.auth.signUp({ email, password })`
 - `supabase.auth.signInWithPassword({ email, password })`
-- `supabase.from('sales').select('*').eq('user_id', uid).eq('deleted_at', null)`
+- `supabase.from('sales').select('*').eq('user_id', uid).is('deleted_at', null)`
 - `supabase.from('sales').insert({ ... })`
 - `supabase.from('sales').update({ ... }).eq('id', id)`
 - `supabase.from('sales').update({ deleted_at: new Date() }).eq('id', id)` (soft delete)
-- Admin queries: bypass RLS with service role key for admin operations only
 
 ### Environment Variables
 ```
@@ -276,6 +262,9 @@ VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
 onlyfans-sales-app/
 ├── SPEC.md
+├── README.md
+├── INSTALL.md          # Installation guides (VPS, Hosting, Vercel)
+├── install-vps.sh      # Auto-install script for VPS
 ├── package.json
 ├── vite.config.ts
 ├── tailwind.config.js
@@ -319,6 +308,19 @@ onlyfans-sales-app/
 │       │   └── Profile.tsx
 │       └── admin/
 │           ├── AdminDashboard.tsx
-│           ├── AdminUsers.tsx
 │           └── AdminSettings.tsx
+├── supabase/
+│   └── schema.sql
+└── public/
+    └── favicon.svg
 ```
+
+---
+
+## 8. Default Credentials
+
+| Role | Email | Password |
+|---|---|---|
+| Admin | Set during setup in Supabase | Set via Supabase Dashboard |
+
+First admin user must be created manually via Supabase SQL Editor + Dashboard.
