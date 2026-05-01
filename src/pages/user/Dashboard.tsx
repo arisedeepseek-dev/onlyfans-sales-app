@@ -1,6 +1,5 @@
 import { useEffect, useState, useMemo } from 'react'
 import { AppLayout } from '../../components/layout/AppLayout'
-import { StatCard } from '../../components/ui/StatCard'
 import { Sale, DashboardStats } from '../../types'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
@@ -11,6 +10,8 @@ import { SalesChart } from '../../components/ui/SalesChart'
 
 type ChartPeriod = '24h' | '7d' | '30d' | '90d' | '1y'
 type ChartDataPoint = { label: string; gross: number; net: number; comms: number; salary: number }
+
+
 
 export function Dashboard() {
   const { user } = useAuth()
@@ -26,7 +27,6 @@ export function Dashboard() {
 
   async function fetchData() {
     if (!user) return
-
     try {
       const { data: sales, error } = await supabase
         .from('sales')
@@ -90,7 +90,6 @@ export function Dashboard() {
     let dataMap: Record<string, { gross: number; net: number; comms: number; salary: number }> = {}
 
     if (chartPeriod === '24h') {
-      labels = []
       for (let i = 23; i >= 0; i--) {
         const d = new Date(now)
         d.setHours(now.getHours() - i, 0, 0, 0)
@@ -98,7 +97,6 @@ export function Dashboard() {
       }
       dataMap = buildMap(labels, d => d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }))
     } else if (chartPeriod === '7d') {
-      labels = []
       for (let i = 6; i >= 0; i--) {
         const d = new Date(now)
         d.setDate(now.getDate() - i)
@@ -112,7 +110,6 @@ export function Dashboard() {
         return `W${Math.min(4, Math.max(1, 4 - week))}`
       })
     } else if (chartPeriod === '90d') {
-      labels = []
       for (let i = 2; i >= 0; i--) {
         const d = new Date(now)
         d.setMonth(now.getMonth() - i)
@@ -120,7 +117,6 @@ export function Dashboard() {
       }
       dataMap = buildMap(labels, d => d.toLocaleDateString('en-US', { month: 'short' }))
     } else if (chartPeriod === '1y') {
-      labels = []
       for (let i = 11; i >= 0; i--) {
         const d = new Date(now)
         d.setMonth(now.getMonth() - i)
@@ -152,103 +148,110 @@ export function Dashboard() {
     <AppLayout
       title={`Hello, ${user?.email?.split('@')[0] || 'User'}`}
       rightAction={
-        <Link to="/sales" className="text-sm sm:text-base text-accent-primary font-medium">+ Add Sale</Link>
+        <Link to="/sales" className="text-xs sm:text-sm text-accent-primary font-medium whitespace-nowrap">+ Add Sale</Link>
       }
     >
-      <div className="space-y-6 sm:space-y-8 animate-fade-in">
+      <div className="space-y-5 sm:space-y-6 md:space-y-8 animate-fade-in">
+        {/* Chart */}
         <section>
           <SalesChart data={chartData} period={chartPeriod} onPeriodChange={setChartPeriod} />
         </section>
 
-        {/* Today's Stats */}
-        <section>
-          <h2 className="text-xs sm:text-sm md:text-base font-medium text-[#8B8B9E] mb-3 sm:mb-4">Today</h2>
-          <div className="grid grid-cols-2 gap-3 sm:gap-4 md:gap-6">
-            <StatCard
-              label="Gross Sales"
-              value={formatCurrency(stats?.today.gross || 0)}
-              icon={<DollarSign className="w-4 h-4 sm:w-5 sm:h-5" />}
-            />
-            <StatCard
-              label="Total Salary"
-              value={formatCurrency(stats?.today.salary || 0)}
-              icon={<TrendingUp className="w-4 h-4 sm:w-5 sm:h-5" />}
-              accent
-            />
-          </div>
-        </section>
+        {/* Period Stats Grid */}
+        {[
+          {
+            title: 'Today',
+            cols: 2,
+            items: [
+              { label: 'Gross', value: formatCurrency(stats?.today.gross || 0), icon: <DollarSign className="w-4 h-4" /> },
+              { label: 'Salary', value: formatCurrency(stats?.today.salary || 0), icon: <TrendingUp className="w-4 h-4" />, accent: true },
+            ]
+          },
+          {
+            title: 'This Week',
+            cols: 4,
+            items: [
+              { label: 'Gross', value: formatCurrency(stats?.weekly.gross || 0) },
+              { label: 'Net', value: formatCurrency(stats?.weekly.net || 0) },
+              { label: 'Comms', value: `-${formatCurrency(stats?.weekly.comms || 0)}`, danger: true },
+              { label: 'Salary', value: formatCurrency(stats?.weekly.salary || 0), accent: true },
+            ]
+          },
+          {
+            title: 'This Month',
+            cols: 2,
+            items: [
+              { label: 'Gross Total', value: formatCurrency(stats?.monthly.gross || 0), icon: <DollarSign className="w-4 h-4" /> },
+              { label: 'Net Salary', value: formatCurrency(stats?.monthly.salary || 0), icon: <Calculator className="w-4 h-4" />, accent: true },
+              { label: 'Net (80%)', value: formatCurrency(stats?.monthly.net || 0), icon: <Clock className="w-4 h-4" /> },
+              { label: 'Comms', value: formatCurrency(stats?.monthly.comms || 0), icon: <TrendingUp className="w-4 h-4" /> },
+            ]
+          },
+        ].map(({ title, cols, items }: { title: string; cols: number; items: { label: string; value: string; icon?: React.ReactNode; accent?: boolean; danger?: boolean }[] }) => (
+          <section key={title}>
+            <h2 className="text-[10px] sm:text-xs font-medium text-white/30 uppercase tracking-widest mb-2 sm:mb-3">{title}</h2>
+            <div className={`grid grid-cols-${cols} gap-2 sm:gap-3`}
+              style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}>
+              {items.map(({ label, value, icon, accent, danger }) => (
+                <div
+                  key={label}
+                  className="bg-dark-card border border-dark-border rounded-xl sm:rounded-2xl p-3 sm:p-4 md:p-5 flex items-center justify-between gap-2"
+                >
+                  <div className="min-w-0">
+                    <p className="text-[10px] sm:text-xs text-white/40 mb-0.5 sm:mb-1 truncate">{label}</p>
+                    <p className={`text-sm sm:text-base md:text-lg lg:text-xl font-bold tabular-nums truncate ${accent ? 'text-success' : danger ? 'text-danger' : 'text-white'}`}>
+                      {value}
+                    </p>
+                  </div>
+                  {icon && (
+                    <div className={`p-1.5 sm:p-2 rounded-lg shrink-0 ${accent ? 'bg-success/10 text-success' : 'bg-dark-elevated text-white/40'}`}>
+                      {icon}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </section>
+        ))}
 
-        {/* Weekly Stats */}
+        {/* This Year - Full Width Card */}
         <section>
-          <h2 className="text-xs sm:text-sm md:text-base font-medium text-[#8B8B9E] mb-3 sm:mb-4">This Week</h2>
-          <div className="bg-dark-card border border-dark-border rounded-2xl sm:rounded-3xl p-4 sm:p-5 md:p-6">
-            <div className="grid grid-cols-4 gap-3 sm:gap-4 md:gap-6">
-              <div>
-                <p className="text-xs sm:text-sm text-[#8B8B9E] mb-1">Gross</p>
-                <p className="text-lg sm:text-xl md:text-2xl font-bold text-white tabular-nums">
-                  {formatCurrency(stats?.weekly.gross || 0)}
+          <h2 className="text-[10px] sm:text-xs font-medium text-white/30 uppercase tracking-widest mb-2 sm:mb-3">This Year</h2>
+          <div className="bg-gradient-to-br from-accent-primary/15 via-accent-primary/10 to-accent-secondary/5 border border-accent-primary/20 rounded-2xl sm:rounded-3xl overflow-hidden">
+            {/* Hero Row */}
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 sm:p-6 md:p-8 border-b border-white/5">
+              <div className="text-center sm:text-left">
+                <p className="text-xs sm:text-sm text-white/40 mb-1">Total Salary</p>
+                <p className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-white tabular-nums tracking-tight">
+                  {formatCurrency(stats?.yearly.salary || 0)}
                 </p>
               </div>
-              <div>
-                <p className="text-xs sm:text-sm text-[#8B8B9E] mb-1">Net (80%)</p>
-                <p className="text-lg sm:text-xl md:text-2xl font-bold text-white tabular-nums">
-                  {formatCurrency(stats?.weekly.net || 0)}
-                </p>
-              </div>
-              <div>
-                <p className="text-xs sm:text-sm text-[#8B8B9E] mb-1">Comms</p>
-                <p className="text-lg sm:text-xl md:text-2xl font-bold text-danger tabular-nums">
-                  -{formatCurrency(stats?.weekly.comms || 0)}
-                </p>
-              </div>
-              <div>
-                <p className="text-xs sm:text-sm text-[#8B8B9E] mb-1">Salary</p>
-                <p className="text-lg sm:text-xl md:text-2xl font-bold text-success tabular-nums">
-                  {formatCurrency(stats?.weekly.salary || 0)}
-                </p>
+              <div className="flex gap-2 sm:gap-3">
+                {[
+                  { label: 'Gross', value: formatCurrency(stats?.yearly.gross || 0), color: 'text-white' },
+                  { label: 'Net', value: formatCurrency(stats?.yearly.net || 0), color: 'text-success' },
+                ].map(({ label, value, color }) => (
+                  <div key={label} className="bg-white/5 rounded-xl px-3 py-2 sm:px-4 sm:py-3 text-center">
+                    <p className="text-[10px] sm:text-xs text-white/40 mb-0.5">{label}</p>
+                    <p className={`text-sm sm:text-base md:text-lg font-bold ${color} tabular-nums`}>{value}</p>
+                  </div>
+                ))}
               </div>
             </div>
-          </div>
-        </section>
 
-        {/* Monthly Stats */}
-        <section>
-          <h2 className="text-xs sm:text-sm md:text-base font-medium text-[#8B8B9E] mb-3 sm:mb-4">This Month</h2>
-          <div className="grid grid-cols-2 gap-3 sm:gap-4 md:gap-6">
-            <StatCard label="Gross Total" value={formatCurrency(stats?.monthly.gross || 0)} icon={<DollarSign className="w-4 h-4 sm:w-5 sm:h-5" />} />
-            <StatCard label="Net Salary" value={formatCurrency(stats?.monthly.salary || 0)} icon={<Calculator className="w-4 h-4 sm:w-5 sm:h-5" />} accent />
-            <StatCard label="Net (after OF 20%)" value={formatCurrency(stats?.monthly.net || 0)} icon={<Clock className="w-4 h-4 sm:w-5 sm:h-5" />} />
-            <StatCard label="Comms Cut" value={formatCurrency(stats?.monthly.comms || 0)} icon={<TrendingUp className="w-4 h-4 sm:w-5 sm:h-5" />} />
-          </div>
-        </section>
-
-        {/* Yearly Overview */}
-        <section>
-          <h2 className="text-xs sm:text-sm md:text-base font-medium text-[#8B8B9E] mb-3 sm:mb-4">This Year</h2>
-          <div className="bg-gradient-to-br from-accent-primary/20 to-accent-secondary/10 border border-accent-primary/30 rounded-2xl sm:rounded-3xl p-5 sm:p-6 md:p-8">
-            <div className="text-center mb-4 sm:mb-6">
-              <p className="text-sm sm:text-base text-[#8B8B9E] mb-2">Total Salary</p>
-              <p className="text-3xl sm:text-4xl md:text-5xl font-bold text-white tabular-nums">
-                {formatCurrency(stats?.yearly.salary || 0)}
-              </p>
-            </div>
-            <div className="grid grid-cols-4 gap-2 sm:gap-3 md:gap-4">
-              <div className="bg-dark-bg/50 rounded-xl p-2 sm:p-3 md:p-4">
-                <p className="text-xs sm:text-sm text-[#8B8B9E]">Gross</p>
-                <p className="text-sm sm:text-base md:text-lg font-semibold text-white tabular-nums">{formatCurrency(stats?.yearly.gross || 0)}</p>
-              </div>
-              <div className="bg-dark-bg/50 rounded-xl p-2 sm:p-3 md:p-4">
-                <p className="text-xs sm:text-sm text-[#8B8B9E]">Net (80%)</p>
-                <p className="text-sm sm:text-base md:text-lg font-semibold text-white tabular-nums">{formatCurrency(stats?.yearly.net || 0)}</p>
-              </div>
-              <div className="bg-dark-bg/50 rounded-xl p-2 sm:p-3 md:p-4">
-                <p className="text-xs sm:text-sm text-[#8B8B9E]">Comms</p>
-                <p className="text-sm sm:text-base md:text-lg font-semibold text-danger tabular-nums">-{formatCurrency(stats?.yearly.comms || 0)}</p>
-              </div>
-              <div className="bg-dark-bg/50 rounded-xl p-2 sm:p-3 md:p-4">
-                <p className="text-xs sm:text-sm text-[#8B8B9E]">Hourly</p>
-                <p className="text-sm sm:text-base md:text-lg font-semibold text-success tabular-nums">+{formatCurrency(stats?.yearly.hourlyEarnings || 0)}</p>
-              </div>
+            {/* Sub Stats Row */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 divide-x divide-y sm:divide-y-0 divide-white/5">
+              {[
+                { label: 'Comms', value: `-${formatCurrency(stats?.yearly.comms || 0)}`, color: 'text-danger' },
+                { label: 'Hourly', value: `+${formatCurrency(stats?.yearly.hourlyEarnings || 0)}`, color: 'text-success' },
+                { label: 'Gross', value: formatCurrency(stats?.yearly.gross || 0), color: 'text-white/70' },
+                { label: 'Net 80%', value: formatCurrency(stats?.yearly.net || 0), color: 'text-white/70' },
+              ].map(({ label, value, color }) => (
+                <div key={label} className="p-3 sm:p-4 text-center">
+                  <p className="text-[10px] sm:text-xs text-white/40 mb-0.5 sm:mb-1">{label}</p>
+                  <p className={`text-sm sm:text-base md:text-lg font-bold ${color} tabular-nums`}>{value}</p>
+                </div>
+              ))}
             </div>
           </div>
         </section>
@@ -256,22 +259,28 @@ export function Dashboard() {
         {/* Recent Sales */}
         {recentSales.length > 0 && (
           <section>
-            <div className="flex items-center justify-between mb-3 sm:mb-4">
-              <h2 className="text-xs sm:text-sm md:text-base font-medium text-[#8B8B9E]">Recent Sales</h2>
+            <div className="flex items-center justify-between mb-2 sm:mb-3">
+              <h2 className="text-[10px] sm:text-xs font-medium text-white/30 uppercase tracking-widest">Recent Sales</h2>
               <Link to="/sales" className="text-xs sm:text-sm text-accent-primary hover:underline">View All</Link>
             </div>
-            <div className="space-y-2 sm:space-y-3">
+            <div className="bg-dark-card border border-dark-border rounded-2xl sm:rounded-3xl overflow-hidden divide-y divide-white/5">
               {recentSales.map(sale => {
-                const { comms, salary } = computeSaleValues(sale)
+                const { salary } = computeSaleValues(sale)
                 return (
-                  <div key={sale.id} className="bg-dark-card border border-dark-border rounded-xl sm:rounded-2xl p-3 sm:p-4 md:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-dark-elevated transition-colors cursor-pointer">
-                    <div>
-                      <p className="text-sm sm:text-base md:text-lg font-medium text-white tabular-nums">{formatCurrency(Number(sale.gross_sales))}</p>
-                      <p className="text-xs sm:text-sm text-[#8B8B9E]">{new Date(sale.created_at).toLocaleDateString()}</p>
+                  <div key={sale.id} className="flex items-center justify-between p-3 sm:p-4 md:p-5 hover:bg-dark-elevated/50 transition-colors">
+                    <div className="min-w-0">
+                      <p className="text-sm sm:text-base md:text-lg font-semibold text-white tabular-nums truncate">
+                        {formatCurrency(Number(sale.gross_sales))}
+                      </p>
+                      <p className="text-[10px] sm:text-xs text-white/40 mt-0.5">
+                        {new Date(sale.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                      </p>
                     </div>
-                    <div className="text-right">
-                      <p className="text-xs sm:text-sm text-[#8B8B9E]">Comms: {formatCurrency(comms)}</p>
-                      <p className="text-sm sm:text-base md:text-lg font-semibold text-success tabular-nums">+{formatCurrency(salary)}</p>
+                    <div className="text-right shrink-0 ml-2">
+                      <p className="text-[10px] sm:text-xs text-white/40">Salary</p>
+                      <p className="text-sm sm:text-base font-semibold text-success tabular-nums">
+                        +{formatCurrency(salary)}
+                      </p>
                     </div>
                   </div>
                 )
