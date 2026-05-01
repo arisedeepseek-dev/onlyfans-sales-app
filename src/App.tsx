@@ -33,6 +33,14 @@ function ProtectedRoute({ children, adminOnly = false, userOnly = false }: { chi
     return <Navigate to="/dashboard" replace />
   }
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-dark-bg flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-accent-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    )
+  }
+
   return <>{children}</>
 }
 

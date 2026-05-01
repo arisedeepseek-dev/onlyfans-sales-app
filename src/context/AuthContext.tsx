@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, useRef, ReactNode } from 'react'
+import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 import { User, AuthContextType } from '../types'
 import { supabase } from '../lib/supabase'
 
@@ -7,46 +7,25 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
-  const initializedRef = useRef(false)
 
   useEffect(() => {
-    // Guard against double-init (React StrictMode can trigger this)
-    if (initializedRef.current) return
-    initializedRef.current = true
-
-    async function loadUser() {
-      const { data: { session } } = await supabase.auth.getSession()
+    // Load initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
-        const { data, error } = await supabase
-          .from('users')
-          .select('*')
-          .eq('id', session.user.id)
-          .single()
-
-        if (!error && data) {
-          setUser(data)
-        }
+        fetchUser(session.user.id)
+      } else {
+        setLoading(false)
       }
-      setLoading(false)
-    }
+    })
 
-    loadUser()
-
-    // 2. Listen for auth changes going forward
+    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
         if (session?.user) {
-          const { data, error } = await supabase
-            .from('users')
-            .select('*')
-            .eq('id', session.user.id)
-            .single()
-
-          if (!error && data) {
-            setUser(data)
-          }
+          await fetchUser(session.user.id)
         } else {
           setUser(null)
+          setLoading(false)
         }
       }
     )
@@ -56,6 +35,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
+  async function fetchUser(userId: string) {
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', userId)
+      .single()
+
+    if (!error && data) {
+      setUser(data)
+    } else {
+      setUser(null)
+    }
+    setLoading(false)
+  }
+
   async function signIn(email: string, password: string) {
     setLoading(true)
     try {
@@ -64,7 +58,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setLoading(false)
         return { error: error.message }
       }
-      setLoading(false)
+      // onAuthStateChange will handle updating user state
       return { error: null }
     } catch (err) {
       setLoading(false)
@@ -80,7 +74,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setLoading(false)
         return { error: error.message }
       }
-      setLoading(false)
       return { error: null }
     } catch (err) {
       setLoading(false)
@@ -96,24 +89,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   async function updateUser(data: Partial<User>) {
     if (!user) return
-    try {
-      const { error } = await supabase
-        .from('users')
-        .update({ ...data, updated_at: new Date().toISOString() })
-        .eq('id', user.id)
-      if (error) throw error
-      setUser(prev => prev ? { ...prev, ...data } : null)
-    } catch (error) {
-      console.error('Error updating user:', error)
-      throw error
-    }
+    const { error } = await supabase
+      .from('users')
+      .update({ ...data, updated_at: new Date().toISOString() })
+      .eq('id', user.id)
+    if (error) throw error
+    setUser(prev => prev ? { ...prev, ...data } : null)
   }
 
-  // Block banned users from signing in
   const isAdmin = user?.role === 'admin'
   const isBanned = user?.banned === true
 
-  // If user is banned, force sign out
+  // Block banned users from signing in
   useEffect(() => {
     if (isBanned) {
       signOut()
