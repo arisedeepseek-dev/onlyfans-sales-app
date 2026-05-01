@@ -9,7 +9,7 @@ import { AdminDashboard } from './pages/admin/AdminDashboard'
 import { AdminUsers } from './pages/admin/AdminUsers'
 import { AdminSettings } from './pages/admin/AdminSettings'
 
-function ProtectedRoute({ children, adminOnly = false }: { children: React.ReactNode, adminOnly?: boolean }) {
+function ProtectedRoute({ children, adminOnly = false, userOnly = false }: { children: React.ReactNode; adminOnly?: boolean; userOnly?: boolean }) {
   const { user, loading, isAdmin } = useAuth()
 
   if (loading) {
@@ -24,6 +24,12 @@ function ProtectedRoute({ children, adminOnly = false }: { children: React.React
     return <Navigate to="/login" replace />
   }
 
+  // Admin trying to access user-only pages → go to admin
+  if (userOnly && isAdmin) {
+    return <Navigate to="/admin" replace />
+  }
+
+  // Non-admin trying to access admin pages → go to dashboard
   if (adminOnly && !isAdmin) {
     return <Navigate to="/dashboard" replace />
   }
@@ -46,21 +52,21 @@ function AppRoutes() {
         element={user ? <Navigate to={isAdmin ? '/admin' : '/dashboard'} replace /> : <SignUp />}
       />
 
-      {/* User Routes */}
+      {/* User Routes — admin redirected away */}
       <Route
         path="/dashboard"
-        element={<ProtectedRoute><Dashboard /></ProtectedRoute>}
+        element={<ProtectedRoute userOnly><Dashboard /></ProtectedRoute>}
       />
       <Route
         path="/sales"
-        element={<ProtectedRoute><Sales /></ProtectedRoute>}
+        element={<ProtectedRoute userOnly><Sales /></ProtectedRoute>}
       />
       <Route
         path="/profile"
-        element={<ProtectedRoute><Profile /></ProtectedRoute>}
+        element={<ProtectedRoute userOnly><Profile /></ProtectedRoute>}
       />
 
-      {/* Admin Routes */}
+      {/* Admin Routes — non-admin redirected away */}
       <Route
         path="/admin"
         element={<ProtectedRoute adminOnly><AdminDashboard /></ProtectedRoute>}

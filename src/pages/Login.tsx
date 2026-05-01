@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { AuthLayout } from '../components/layout/AuthLayout'
@@ -13,24 +13,20 @@ interface LoginForm {
 
 export function Login() {
   const navigate = useNavigate()
-  const { signIn } = useAuth()
-  const [error, setError] = useState<string | null>(null)
-  const [loading, setLoading] = useState(false)
+  const { signIn, user, isAdmin } = useAuth()
+
+  useEffect(() => {
+    if (user) {
+      navigate(isAdmin ? '/admin' : '/dashboard', { replace: true })
+    }
+  }, [user, isAdmin, navigate])
 
   const { register, handleSubmit, formState: { errors } } = useForm<LoginForm>()
 
   const onSubmit = async (data: LoginForm) => {
-    setError(null)
-    setLoading(true)
-    try {
-      const result = await signIn(data.email, data.password)
-      if (result.error) {
-        setError(result.error)
-      } else {
-        navigate('/dashboard')
-      }
-    } finally {
-      setLoading(false)
+    const result = await signIn(data.email, data.password)
+    if (result.error) {
+      alert(result.error)
     }
   }
 
@@ -63,13 +59,7 @@ export function Login() {
           error={errors.password?.message}
         />
 
-        {error && (
-          <div className="p-3 sm:p-4 rounded-xl bg-danger/10 border border-danger/20 text-danger text-sm sm:text-base">
-            {error}
-          </div>
-        )}
-
-        <Button type="submit" className="w-full min-h-[48px]" loading={loading}>
+        <Button type="submit" className="w-full min-h-[48px]">
           Sign In
         </Button>
       </form>
