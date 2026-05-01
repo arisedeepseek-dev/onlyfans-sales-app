@@ -5,7 +5,7 @@ import { Button } from '../../components/ui/Button'
 import { Input } from '../../components/ui/Input'
 import { Card } from '../../components/ui/Card'
 import { useAuth } from '../../context/AuthContext'
-import { Type, Shield, Save, CheckCircle } from 'lucide-react'
+import { Type, Shield, Save, CheckCircle, AlertCircle, Info } from 'lucide-react'
 
 interface SettingsForm {
   app_name: string
@@ -22,7 +22,7 @@ export function AdminSettings() {
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const { register, handleSubmit, watch, formState: { errors } } = useForm<SettingsForm>({
+  const { register, handleSubmit, watch, formState: { errors }, reset } = useForm<SettingsForm>({
     defaultValues: {
       app_name: user?.app_name || 'OnlyFans Sales',
       app_title: user?.app_title || 'Your sales, your numbers, your empire',
@@ -32,10 +32,13 @@ export function AdminSettings() {
 
   const newPassword = watch('new_password')
 
-  // Update form when user data loads
   useEffect(() => {
     if (user) {
-      // We don't auto-fill passwords for security
+      reset({
+        app_name: user.app_name || 'OnlyFans Sales',
+        app_title: user.app_title || 'Your sales, your numbers, your empire',
+        admin_username: user.email?.split('@')[0] || 'admin',
+      })
     }
   }, [user])
 
@@ -45,20 +48,17 @@ export function AdminSettings() {
     setSaved(false)
 
     try {
-      // Update user profile in Supabase
       await updateUser({
         app_name: data.app_name,
         app_title: data.app_title,
       })
 
-      // If changing password (would need current password verification in real app)
       if (data.new_password) {
         if (data.new_password !== data.confirm_password) {
           setError('New passwords do not match')
           setLoading(false)
           return
         }
-        // In a real implementation, you'd verify current password and update via supabase.auth.updateUser
       }
 
       setSaved(true)
@@ -72,11 +72,11 @@ export function AdminSettings() {
   }
 
   return (
-    <AppLayout title="App Settings" showNav={true}>
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 sm:space-y-8 animate-fade-in">
+    <AppLayout title="App Settings">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 sm:space-y-6 md:space-y-8 animate-fade-in">
         {/* Success Message */}
         {saved && (
-          <div className="p-3 sm:p-4 rounded-xl bg-success/10 border border-success/30 text-success text-sm sm:text-base flex items-center gap-2">
+          <div className="flex items-center gap-2 p-3 sm:p-4 rounded-xl bg-success/10 border border-success/20 text-success text-sm">
             <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
             Settings saved successfully!
           </div>
@@ -84,16 +84,17 @@ export function AdminSettings() {
 
         {/* Error Message */}
         {error && (
-          <div className="p-3 sm:p-4 rounded-xl bg-danger/10 border border-danger/30 text-danger text-sm sm:text-base">
+          <div className="flex items-center gap-2 p-3 sm:p-4 rounded-xl bg-danger/10 border border-danger/20 text-danger text-sm">
+            <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
             {error}
           </div>
         )}
 
-        {/* App Info */}
+        {/* App Info Card */}
         <Card className="space-y-4 sm:space-y-5">
-          <div className="flex items-center gap-2 text-white mb-2">
-            <Type className="w-5 h-5 sm:w-6 sm:h-6 text-accent-primary" />
-            <h2 className="font-semibold text-sm sm:text-base md:text-lg">App Information</h2>
+          <div className="flex items-center gap-2 mb-1">
+            <Type className="w-4 h-4 sm:w-5 sm:h-5 text-accent-primary" />
+            <h2 className="font-semibold text-white text-sm sm:text-base">App Information</h2>
           </div>
 
           <Input
@@ -111,46 +112,60 @@ export function AdminSettings() {
           />
         </Card>
 
-        {/* Admin Credentials */}
+        {/* Admin Credentials Card */}
         <Card className="space-y-4 sm:space-y-5">
-          <div className="flex items-center gap-2 text-white mb-2">
-            <Shield className="w-5 h-5 sm:w-6 sm:h-6 text-accent-primary" />
-            <h2 className="font-semibold text-sm sm:text-base md:text-lg">Admin Credentials</h2>
+          <div className="flex items-center gap-2 mb-1">
+            <Shield className="w-4 h-4 sm:w-5 sm:h-5 text-accent-primary" />
+            <h2 className="font-semibold text-white text-sm sm:text-base">Admin Account</h2>
           </div>
 
           <Input
-            label="Admin Username"
+            label="Username"
             placeholder="admin"
             {...register('admin_username', { required: 'Username is required' })}
             error={errors.admin_username?.message}
           />
 
-          <Input
-            label="Current Password"
-            type="password"
-            placeholder="Enter current password to change"
-            {...register('current_password')}
-          />
+          <div className="p-3 sm:p-4 rounded-xl bg-dark-elevated border border-white/5">
+            <div className="flex items-start gap-2">
+              <Info className="w-4 h-4 text-[#8B8B9E] mt-0.5 flex-shrink-0" />
+              <p className="text-xs sm:text-sm text-[#8B8B9E]">
+                Email: <span className="text-white">{user?.email}</span>
+              </p>
+            </div>
+          </div>
 
-          <Input
-            label="New Password"
-            type="password"
-            placeholder="Leave empty to keep current"
-            {...register('new_password', {
-              minLength: { value: 6, message: 'Password must be at least 6 characters' }
-            })}
-            error={errors.new_password?.message}
-          />
+          <div className="border-t border-white/5 pt-4 sm:pt-5">
+            <p className="text-xs sm:text-sm text-white/40 mb-3 sm:mb-4">Change Password</p>
+            <div className="space-y-3 sm:space-y-4">
+              <Input
+                label="Current Password"
+                type="password"
+                placeholder="Enter current password"
+                {...register('current_password')}
+              />
 
-          <Input
-            label="Confirm New Password"
-            type="password"
-            placeholder="Re-enter new password"
-            {...register('confirm_password', {
-              validate: (value) => !newPassword || value === newPassword || 'Passwords do not match'
-            })}
-            error={errors.confirm_password?.message}
-          />
+              <Input
+                label="New Password"
+                type="password"
+                placeholder="Leave empty to keep current"
+                {...register('new_password', {
+                  minLength: { value: 6, message: 'Password must be at least 6 characters' }
+                })}
+                error={errors.new_password?.message}
+              />
+
+              <Input
+                label="Confirm New Password"
+                type="password"
+                placeholder="Re-enter new password"
+                {...register('confirm_password', {
+                  validate: (value) => !newPassword || value === newPassword || 'Passwords do not match'
+                })}
+                error={errors.confirm_password?.message}
+              />
+            </div>
+          </div>
         </Card>
 
         {/* Save Button */}
@@ -164,9 +179,9 @@ export function AdminSettings() {
         </Button>
 
         {/* Version Info */}
-        <div className="text-center pt-4 sm:pt-6">
+        <div className="text-center pt-2 sm:pt-4">
           <p className="text-xs sm:text-sm text-[#6B6B80]">OnlyFans Sales Tracker v1.0.0</p>
-          <p className="text-xs sm:text-sm text-[#6B6B80]">Built with React + Supabase</p>
+          <p className="text-xs sm:text-sm text-[#6B6B80]">React + Supabase</p>
         </div>
       </form>
     </AppLayout>
