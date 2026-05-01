@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { AuthLayout } from '../components/layout/AuthLayout'
@@ -17,12 +17,19 @@ export function SignUp() {
   const { signUp, user, isAdmin } = useAuth()
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
+  const [authLoading, setAuthLoading] = useState(true)
+  const initialized = useRef(false)
 
+  // Handle navigation once when user is confirmed
   useEffect(() => {
+    if (authLoading || initialized.current) return
     if (user) {
+      initialized.current = true
       navigate(isAdmin ? '/admin' : '/dashboard', { replace: true })
+    } else {
+      setAuthLoading(false)
     }
-  }, [user, isAdmin, navigate])
+  }, [user, isAdmin, authLoading, navigate])
 
   const { register, handleSubmit, watch, formState: { errors } } = useForm<SignUpForm>()
   const password = watch('password')
@@ -32,12 +39,24 @@ export function SignUp() {
     setError(null)
     setSubmitting(true)
 
-    const result = await signUp(data.email, data.password)
-    setSubmitting(false)
-
-    if (result.error) {
-      setError(result.error)
+    try {
+      const result = await signUp(data.email, data.password)
+      if (result.error) {
+        setError(result.error)
+      }
+    } finally {
+      setSubmitting(false)
     }
+  }
+
+  if (authLoading) {
+    return (
+      <AuthLayout title="Create Account">
+        <div className="flex items-center justify-center py-8">
+          <div className="w-8 h-8 border-2 border-accent-primary border-t-transparent rounded-full animate-spin" />
+        </div>
+      </AuthLayout>
+    )
   }
 
   return (

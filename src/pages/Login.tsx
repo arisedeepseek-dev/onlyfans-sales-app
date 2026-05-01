@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { AuthLayout } from '../components/layout/AuthLayout'
@@ -16,12 +16,17 @@ export function Login() {
   const { signIn, user, isAdmin, loading: authLoading } = useAuth()
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
+  const initialized = useRef(false)
 
+  // Handle navigation once when user is confirmed
   useEffect(() => {
+    // Only navigate after auth has finished loading AND we have a user
+    if (authLoading || initialized.current) return
     if (user) {
+      initialized.current = true
       navigate(isAdmin ? '/admin' : '/dashboard', { replace: true })
     }
-  }, [user, isAdmin, navigate])
+  }, [user, isAdmin, authLoading, navigate])
 
   const { register, handleSubmit, formState: { errors } } = useForm<LoginForm>()
 
@@ -30,13 +35,26 @@ export function Login() {
     setError(null)
     setSubmitting(true)
 
-    const result = await signIn(data.email, data.password)
-    setSubmitting(false)
-
-    if (result.error) {
-      setError(result.error)
+    try {
+      const result = await signIn(data.email, data.password)
+      if (result.error) {
+        setError(result.error)
+      }
+      // Navigation will happen via useEffect when user state updates
+    } finally {
+      setSubmitting(false)
     }
-    // Navigation happens via useEffect when user state updates
+  }
+
+  // Show loading spinner only on initial auth check, not during form submission
+  if (authLoading && !submitting) {
+    return (
+      <AuthLayout title="Welcome Back">
+        <div className="flex items-center justify-center py-8">
+          <div className="w-8 h-8 border-2 border-accent-primary border-t-transparent rounded-full animate-spin" />
+        </div>
+      </AuthLayout>
+    )
   }
 
   return (
@@ -77,7 +95,7 @@ export function Login() {
         <Button
           type="submit"
           className="w-full min-h-[48px]"
-          disabled={submitting || authLoading}
+          disabled={submitting}
           loading={submitting}
         >
           {submitting ? 'Signing in...' : 'Sign In'}
