@@ -9,6 +9,7 @@ create table if not exists public.users (
   id uuid primary key references auth.users(id) on delete cascade,
   email text unique not null,
   role text default 'user' check (role in ('user', 'admin')),
+  banned boolean default false,
   app_name text default 'OnlyFans Sales',
   app_title text default 'Your sales, your numbers, your empire',
   theme text default 'dark' check (theme in ('dark', 'light')),
@@ -107,3 +108,4 @@ create index if not exists idx_sales_user_id on public.sales(user_id);
 create index if not exists idx_sales_created_at on public.sales(created_at);
 create index if not exists idx_sales_deleted_at on public.sales(deleted_at);
 create index if not exists idx_users_role on public.users(role);
+create index if not exists idx_users_banned on public.users(banned);
