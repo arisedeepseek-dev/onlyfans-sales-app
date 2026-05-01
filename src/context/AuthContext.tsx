@@ -64,7 +64,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setLoading(false)
         return { error: error.message }
       }
-      // onAuthStateChange will handle setting user — clear loading so redirect happens
       setLoading(false)
       return { error: null }
     } catch (err) {
@@ -81,7 +80,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setLoading(false)
         return { error: error.message }
       }
-      // onAuthStateChange will handle setting user — clear loading so redirect happens
       setLoading(false)
       return { error: null }
     } catch (err) {
@@ -111,7 +109,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  // Block banned users from signing in
   const isAdmin = user?.role === 'admin'
+  const isBanned = user?.banned === true
+
+  // If user is banned, force sign out
+  useEffect(() => {
+    if (isBanned) {
+      signOut()
+    }
+  }, [isBanned])
 
   return (
     <AuthContext.Provider value={{ user, loading, signIn, signUp, signOut, updateUser, isAdmin }}>

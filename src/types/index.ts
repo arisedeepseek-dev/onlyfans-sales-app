@@ -5,6 +5,7 @@ export interface User {
   id: string
   email: string
   role: Role
+  banned: boolean
   app_name?: string
   app_title?: string
   theme: Theme
