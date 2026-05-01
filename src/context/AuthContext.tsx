@@ -7,54 +7,84 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
-  const authResolveRef = useRef<(() => void) | null>(null)
+  const initializedRef = useRef(false)
 
   useEffect(() => {
-    // Check active session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        fetchUserProfile(session.user.id)
-      } else {
-        setLoading(false)
-      }
-    })
+    // Prevent double initialization
+    if (initializedRef.current) return
+    initializedRef.current = true
 
-    // Listen for auth changes
+    let cancelled = false
+
+    async function init() {
+      try {
+        // 1. Check existing session
+        const { data: { session } } = await supabase.auth.getSession()
+
+        if (!cancelled && session?.user) {
+          // 2. Fetch user profile if session exists
+          const { data, error } = await supabase
+            .from('users')
+            .select('*')
+            .eq('id', session.user.id)
+            .single()
+
+          if (!cancelled) {
+            if (error) {
+              console.error('Profile fetch error:', error)
+              setUser(null)
+            } else {
+              setUser(data)
+            }
+          }
+        } else if (!cancelled) {
+          setUser(null)
+        }
+      } catch (err) {
+        console.error('Auth init error:', err)
+        if (!cancelled) setUser(null)
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    }
+
+    init()
+
+    // Listen for future auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
+        // Skip the first redundant SIGHUP event that Supabase fires
+        if (cancelled || !initializedRef.current) return
+
         if (session?.user) {
-          await fetchUserProfile(session.user.id)
+          try {
+            const { data, error } = await supabase
+              .from('users')
+              .select('*')
+              .eq('id', session.user.id)
+              .single()
+
+            if (!cancelled) {
+              if (error) {
+                setUser(null)
+              } else {
+                setUser(data)
+              }
+            }
+          } catch {
+            if (!cancelled) setUser(null)
+          }
         } else {
-          setUser(null)
-          setLoading(false)
+          if (!cancelled) setUser(null)
         }
       }
     )
 
-    return () => subscription.unsubscribe()
-  }, [])
-
-  async function fetchUserProfile(userId: string) {
-    try {
-      const { data, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', userId)
-        .single()
-
-      if (error) throw error
-      setUser(data)
-    } catch (error) {
-      console.error('Error fetching user profile:', error)
-      setUser(null)
-    } finally {
-      setLoading(false)
-      if (authResolveRef.current) {
-        authResolveRef.current()
-        authResolveRef.current = null
-      }
+    return () => {
+      cancelled = true
+      subscription.unsubscribe()
     }
-  }
+  }, [])
 
   async function signIn(email: string, password: string) {
     setLoading(true)
@@ -64,10 +94,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setLoading(false)
         return { error: error.message }
       }
-      // Wait for onAuthStateChange + fetchUserProfile to complete
-      await new Promise<void>((resolve) => {
-        authResolveRef.current = resolve
-      })
+      // Wait for loading to be resolved by onAuthStateChange
       return { error: null }
     } catch (err) {
       setLoading(false)
@@ -83,10 +110,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setLoading(false)
         return { error: error.message }
       }
-      // Wait for onAuthStateChange + fetchUserProfile to complete
-      await new Promise<void>((resolve) => {
-        authResolveRef.current = resolve
-      })
       return { error: null }
     } catch (err) {
       setLoading(false)
@@ -97,6 +120,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   async function signOut() {
     await supabase.auth.signOut()
     setUser(null)
+    setLoading(false)
   }
 
   async function updateUser(data: Partial<User>) {
