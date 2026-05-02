@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate, Link, useLocation } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { AuthLayout } from '../components/layout/AuthLayout'
 import { Button } from '../components/ui/Button'
@@ -13,8 +13,10 @@ interface LoginForm {
 
 export function Login() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { signIn, user, isAdmin, loading: authLoading } = useAuth()
   const [error, setError] = useState<string | null>(null)
+  const [message, setMessage] = useState<string | null>((location.state as { message?: string } | null)?.message ?? null)
   const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
@@ -28,6 +30,7 @@ export function Login() {
   const onSubmit = async (data: LoginForm) => {
     if (submitting) return
     setError(null)
+    setMessage(null)
     setSubmitting(true)
 
     const result = await signIn(data.email, data.password)
@@ -42,6 +45,12 @@ export function Login() {
   return (
     <AuthLayout title="Welcome Back">
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 sm:space-y-5">
+        {message && (
+          <div className="p-3 rounded-xl bg-success/10 border border-success/20 text-success text-sm">
+            {message}
+          </div>
+        )}
+
         {error && (
           <div className="p-3 rounded-xl bg-danger/10 border border-danger/20 text-danger text-sm">
             {error}
