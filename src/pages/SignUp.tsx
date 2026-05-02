@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { AuthLayout } from '../components/layout/AuthLayout'
@@ -15,6 +15,7 @@ interface SignUpForm {
 export function SignUp() {
   const navigate = useNavigate()
   const { signUp, user, isAdmin } = useAuth()
+  const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
     if (user) {
@@ -26,10 +27,22 @@ export function SignUp() {
   const password = watch('password')
 
   const onSubmit = async (data: SignUpForm) => {
+    if (submitting) return
+    setSubmitting(true)
     const result = await signUp(data.email, data.password)
+    setSubmitting(false)
+
     if (result.error) {
       alert(result.error)
+      return
     }
+
+    navigate('/login', {
+      replace: true,
+      state: {
+        message: 'Account created successfully. Please sign in.'
+      }
+    })
   }
 
   return (
@@ -72,8 +85,8 @@ export function SignUp() {
           })}
         />
 
-        <Button type="submit" className="w-full min-h-[48px]">
-          Create Account
+        <Button type="submit" className="w-full min-h-[48px]" disabled={submitting} loading={submitting}>
+          {submitting ? 'Creating account...' : 'Create Account'}
         </Button>
       </form>
 

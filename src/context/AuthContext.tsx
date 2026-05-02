@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 import { User, AuthContextType } from '../types'
 import { supabase } from '../lib/supabase'
+import { User as SupabaseAuthUser } from '@supabase/supabase-js'
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
@@ -10,9 +11,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     // Load initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session?.user) {
-        fetchUser(session.user.id)
+        await ensureUserProfile(session.user)
+        await fetchUser(session.user.id)
       } else {
         setLoading(false)
       }
@@ -22,6 +24,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
         if (session?.user) {
+          await ensureUserProfile(session.user)
           await fetchUser(session.user.id)
         } else {
           setUser(null)
@@ -50,6 +53,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setLoading(false)
   }
 
+  async function ensureUserProfile(authUser: SupabaseAuthUser) {
+    const { error } = await supabase
+      .from('users')
+      .upsert(
+        {
+          id: authUser.id,
+          email: authUser.email ?? '',
+          role: 'user',
+          banned: false,
+          theme: 'dark'
+        },
+        { onConflict: 'id' }
+      )
+
+    if (error) {
+      console.error('Failed to ensure user profile:', error.message)
+    }
+  }
+
   async function signIn(email: string, password: string) {
     setLoading(true)
     try {
@@ -67,16 +89,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function signUp(email: string, password: string) {
-    setLoading(true)
     try {
       const { error } = await supabase.auth.signUp({ email, password })
       if (error) {
-        setLoading(false)
         return { error: error.message }
       }
       return { error: null }
     } catch (err) {
-      setLoading(false)
       return { error: 'An unexpected error occurred' }
     }
   }
