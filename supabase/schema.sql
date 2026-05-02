@@ -10,9 +10,6 @@ create table if not exists public.users (
   email text unique not null,
   role text default 'user' check (role in ('user', 'admin')),
   banned boolean default false,
-  app_name text default 'OnlyFans Sales',
-  app_title text default 'Your sales, your numbers, your empire',
-  theme text default 'dark' check (theme in ('dark', 'light')),
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );
